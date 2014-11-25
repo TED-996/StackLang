@@ -1,53 +1,59 @@
 ﻿using System;
+using StackLang.Core.Exceptions;
 
 namespace StackLang.Core.Instructions {
 	public class NoOpInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.None; }
+		internal override void Execute(ExecutionParameters parameters) {
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
+		public override string ToString() {
+			return ".";
 		}
 	}
 
 	public class EscapeOneInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
+		internal override void Execute(ExecutionParameters parameters) {
+			parameters.SetEscaping(ExecutionParameters.Escaping.One);
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
-			parameters.SetEscaping(ExecutionParameters.Escaping.One);
+		public override string ToString() {
+			return @"\";
 		}
 	}
 
 	public class EscapeLineInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
+		internal override void Execute(ExecutionParameters parameters) {
+			parameters.SetEscaping(ExecutionParameters.Escaping.Line);
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
-			parameters.SetEscaping(ExecutionParameters.Escaping.Line);
+		public override string ToString() {
+			return @"\\";
 		}
 	}
 
 	public class PopInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
+		internal override void Execute(ExecutionParameters parameters) {
+			try {
+				if (parameters.Stack.Count != 0) {
+					parameters.Stack.Pop();
+				}
+			}
+			catch (IncompleteCodeException ex) {
+				throw new CodeException(ex, parameters);
+			}
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
-			if (parameters.Stack.Count != 0) {
-				parameters.Stack.Pop();
-			}
+		public override string ToString() {
+			return "p";
 		}
 	}
 
 	public class ReadInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
-		}
-
-		public override void Execute(ExecutionParameters parameters) {
+		internal override void Execute(ExecutionParameters parameters) {
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.Write("<<: ");
+			Console.ForegroundColor = ConsoleColor.White;
+			
 			string line = Console.ReadLine();
 			if (line == null) {
 				throw new CodeException("Received incomplete input", parameters);
@@ -58,18 +64,24 @@ namespace StackLang.Core.Instructions {
 			}
 			parameters.Stack.Push(new IntObject(value));
 		}
+
+		public override string ToString() {
+			return "<<";
+		}
 	}
 
 	public class WriteInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
+		internal override void Execute(ExecutionParameters parameters) {
+			if (parameters.Stack.Count == 0) {
+				Console.WriteLine("Stack empty.");
+			}
+			else {
+				Console.WriteLine(parameters.Stack.Pop().GetPrintedValue());
+			}
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
-			if (parameters.Stack.Count == 0) {
-				Console.Write("Stack empty.");
-			}
-			Console.Write(parameters.Stack.Pop());
+		public override string ToString() {
+			return ">>";
 		}
 	}
 }

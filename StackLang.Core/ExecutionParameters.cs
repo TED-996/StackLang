@@ -2,61 +2,72 @@
 
 namespace StackLang.Core {
 	public class ExecutionParameters {
-		public readonly ExecutionStack Stack;
+		internal readonly ExecutionStack Stack;
+		internal readonly ProgramMemory Memory;
 
 		public int CurrentLine { get; private set; }
 		public int CurrentInstruction { get; private set; }
 		public ExecutionSource CurrentExecutionSource { get; set; }
 
-		public bool InstructionEscaped { get { return lineEscaped || oneEscaped; } }
+		ExecutionSource oldExecutionSource;
+
+		internal bool InstructionEscaped { get { return lineEscaped || oneEscaped; } }
 
 		bool lineEscaped;
 		bool oneEscaped;
 		bool escapedThisTick;
 
-		public IStackObject Register { get; set; }
-
+		bool noInstructionIncrement;
 		readonly int[] lineLengths;
 
-		public ExecutionParameters(int[] newLineLengths) {
+		internal ExecutionParameters(int[] newLineLengths) {
 			Stack = new ExecutionStack();
+			Memory = new ProgramMemory();
 
 			lineLengths = newLineLengths;
 			CurrentLine = 0;
 			CurrentInstruction = 0;
 			CurrentExecutionSource = ExecutionSource.Code;
+			noInstructionIncrement = false;
 		}
 
-		public void TickStart() {
+		internal void TickStart() {
 			if (CurrentLine >= lineLengths.Length){
 				throw new InvalidOperationException("Execution already ended.");
 			}
 			escapedThisTick = false;
+			oldExecutionSource = CurrentExecutionSource;
+			noInstructionIncrement = false;
 		}
 
-		public void TickEnd() {
-			if (CurrentExecutionSource != ExecutionSource.Code) {
+		internal void TickEnd() {
+			if (oldExecutionSource != ExecutionSource.Code) {
 				return;
 			}
 			if (CurrentLine >= lineLengths.Length) {
 				throw new InvalidOperationException("Execution already ended.");
 			}
-			CurrentInstruction++;
-			if (CurrentInstruction > lineLengths[CurrentLine]) {
-				ChangeLine(CurrentLine + 1);
+			if (!noInstructionIncrement) {
+				CurrentInstruction++;
+			}
+			if (CurrentInstruction >= lineLengths[CurrentLine]) {
+				CurrentLine++;
+				CurrentInstruction = 0;
+				lineEscaped = false;
 			}
 			if (oneEscaped && !escapedThisTick) {
 				oneEscaped = false;
 			}
 		}
 
-		public void ChangeLine(int newLine) {
+		internal void ChangeLine(int newLine) {
 			CurrentLine = newLine;
 			CurrentInstruction = 0;
 			lineEscaped = false;
+			noInstructionIncrement = true;
 		}
 
-		public void SetEscaping(Escaping escaping) {
+		internal void SetEscaping(Escaping escaping) {
 			if (escaping == Escaping.One) {
 				oneEscaped = true;
 			}
@@ -75,5 +86,9 @@ namespace StackLang.Core {
 			One,
 			Line
 		};
+
+		public ExecutionSnapshot GetSnapshot() {
+			return new ExecutionSnapshot(this);
+		}
 	}
 }

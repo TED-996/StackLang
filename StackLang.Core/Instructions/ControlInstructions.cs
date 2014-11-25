@@ -1,52 +1,50 @@
-﻿using System.Security.AccessControl;
+﻿using StackLang.Core.Exceptions;
 
 namespace StackLang.Core.Instructions {
 	public class JumpInstruction : Instruction {
 		readonly int argument;
-
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
-		}
 
 		public JumpInstruction(int newArgument) {
 			argument = newArgument;
 		}
 
 
-		public override void Execute(ExecutionParameters parameters) {
+		internal override void Execute(ExecutionParameters parameters) {
 			parameters.ChangeLine(argument);
+			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Code;
+		}
+
+		public override string ToString() {
+			return "k" + (argument + 1);
 		}
 	}
 
 	public class ExecuteStackInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.ForceExecutable; }
+		internal override bool ForceExecutable { get { return true; } }
+
+		internal override void Execute(ExecutionParameters parameters) {
+			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Stack;
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
-			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Stack;
+		public override string ToString() {
+			return ";";
 		}
 	}
 
 	public class ExecuteCodeInstruction : Instruction
 	{
-		public override InstructionExecutability Executability
-		{
-			get { return InstructionExecutability.Executable; }
-		}
-
-		public override void Execute(ExecutionParameters parameters)
+		internal override void Execute(ExecutionParameters parameters)
 		{
 			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Code;
+		}
+
+		public override string ToString() {
+			return "k";
 		}
 	}
 
 	public class IfInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
-		}
-
-		public override void Execute(ExecutionParameters parameters) {
+		internal override void Execute(ExecutionParameters parameters) {
 			try {
 				if (parameters.Stack.Pop().Evaluate() == 0) {
 					parameters.Stack.Pop();
@@ -56,6 +54,10 @@ namespace StackLang.Core.Instructions {
 			catch (IncompleteCodeException ex) {
 				throw new CodeException(ex, parameters);
 			}
+		}
+
+		public override string ToString() {
+			return "if";
 		}
 	}
 }

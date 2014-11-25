@@ -1,25 +1,26 @@
 ﻿using System;
 
-namespace StackLang.Core {
-	public class CodeException : ApplicationException {
+namespace StackLang.Core.Exceptions {
+	public class CodeException : Exception {
 		readonly ExecutionParameters executionParameters;
 
-		public CodeException(string message, ExecutionParameters newExecutionParameters) : base(message) {
+		internal CodeException(string message, ExecutionParameters newExecutionParameters)
+			: base(message) {
 			executionParameters = newExecutionParameters;
 		}
 
-		public CodeException(IncompleteCodeException incompleteException, ExecutionParameters newExecutionParameters)
+		internal CodeException(IncompleteCodeException incompleteException, ExecutionParameters newExecutionParameters)
 			: this(incompleteException.Message, newExecutionParameters) {
 		}
 
 		public override string ToString() {
 			return "Error: " + Message + '\n' +
-			       "On line" + executionParameters.CurrentLine + ", instruction " + executionParameters.CurrentInstruction;
+			       "On line " + (executionParameters.CurrentLine + 1) + ", instruction " + (executionParameters.CurrentInstruction + 1);
 		}
 	}
 
 	public class IncompleteCodeException : ApplicationException {
-		public IncompleteCodeException(string message)
+		internal IncompleteCodeException(string message)
 			: base(message) {
 		}
 

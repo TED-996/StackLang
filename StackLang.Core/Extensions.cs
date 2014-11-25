@@ -2,7 +2,7 @@
 using System.IO;
 using System.Text;
 
-namespace StackLang.Parser {
+namespace StackLang.Core {
 	internal static class Extensions {
 		internal static IEnumerable<string> ReadAllLines(this Stream stream, Encoding encoding) {
 			using (StreamReader reader = new StreamReader(stream, encoding)) {

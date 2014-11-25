@@ -4,15 +4,16 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D1896BBB-14C1-4726-8ACB-D169A7BD689B}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{C486399B-79B7-4782-A47A-04092B9D91A5}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StackLang.Core</RootNamespace>
-    <AssemblyName>StackLang.Core</AssemblyName>
+    <RootNamespace>StackLang.Debugger</RootNamespace>
+    <AssemblyName>StackLang.Debugger</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -22,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -39,26 +41,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Collections\InstructionLine.cs" />
-    <Compile Include="Collections\InstructionLineCollection.cs" />
-    <Compile Include="Exceptions\CodeException.cs" />
-    <Compile Include="Exceptions\ParseException.cs" />
-    <Compile Include="ExecutionContext.cs" />
-    <Compile Include="ExecutionParameters.cs" />
-    <Compile Include="ExecutionSnapshot.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Instruction.cs" />
-    <Compile Include="InstructionExecutability.cs" />
-    <Compile Include="ExecutionStack.cs" />
-    <Compile Include="Instructions\ArithmeticInstructions.cs" />
-    <Compile Include="Instructions\ControlInstructions.cs" />
-    <Compile Include="Instructions\MiscInstructions.cs" />
-    <Compile Include="Parser.cs" />
-    <Compile Include="ProgramMemory.cs" />
+    <Compile Include="Debugger.cs" />
+    <Compile Include="DebuggerProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StackObjects.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="defaultCode.sl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StackLang.Core\StackLang.Core.csproj">
+      <Project>{d1896bbb-14c1-4726-8acb-d169a7bd689b}</Project>
+      <Name>StackLang.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

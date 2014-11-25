@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using StackLang.Core.Exceptions;
 
 namespace StackLang.Core.Instructions {
 	public class ValueInstruction : Instruction {
@@ -9,21 +10,44 @@ namespace StackLang.Core.Instructions {
 			stackObject = newStackObject;
 		}
 
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.None; }
+		internal override bool ForceExecutable { get { return true; } }
+
+		internal override void Execute(ExecutionParameters parameters) {
+			IVariableObject variableObject = stackObject as IVariableObject;
+			if (variableObject != null) {
+				variableObject.SetProgramMemory(parameters.Memory);
+			}
+
+			parameters.Stack.Push(stackObject);
 		}
 
-		public override void Execute(ExecutionParameters parameters) {
-			parameters.Stack.Push(stackObject);
+		public override string ToString() {
+			return stackObject.ToString();
+		}
+	}
+
+	public class VariableCreatingInstruction : Instruction {
+		internal override void Execute(ExecutionParameters parameters) {
+			int value;
+			try {
+				value = parameters.Stack.Pop().Evaluate();
+			}
+			catch (IncompleteCodeException ex) {
+				throw new CodeException(ex, parameters);
+			}
+			MemoryAreaObject memoryObject = new MemoryAreaObject(value);
+			memoryObject.SetProgramMemory(parameters.Memory);
+
+			parameters.Stack.Push(memoryObject);
+		}
+
+		public override string ToString() {
+			return "m";
 		}
 	}
 
 	public class AssignmentInstruction : Instruction {
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.Executable; }
-		}
-
-		public override void Execute(ExecutionParameters parameters) {
+		internal override void Execute(ExecutionParameters parameters) {
 			try {
 				IVariableObject variable = parameters.Stack.Pop() as IVariableObject;
 				IStackObject value = parameters.Stack.Pop();
@@ -37,6 +61,10 @@ namespace StackLang.Core.Instructions {
 			catch (IncompleteCodeException ex) {
 				throw new CodeException(ex, parameters);
 			}
+		}
+
+		public override string ToString() {
+			return "=";
 		}
 	}
 
@@ -73,11 +101,7 @@ namespace StackLang.Core.Instructions {
 			}
 		}
 
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.None; }
-		}
-
-		public override void Execute(ExecutionParameters parameters) {
+		internal override void Execute(ExecutionParameters parameters) {
 			try {
 				int value1 = parameters.Stack.Pop().Evaluate();
 				int value2 = parameters.Stack.Pop().Evaluate();
@@ -88,6 +112,10 @@ namespace StackLang.Core.Instructions {
 			catch (IncompleteCodeException ex) {
 				throw new CodeException(ex, parameters);
 			}
+		}
+
+		public override string ToString() {
+			return operatorAsString;
 		}
 	}
 
@@ -110,11 +138,7 @@ namespace StackLang.Core.Instructions {
 			}
 		}
 
-		public override InstructionExecutability Executability {
-			get { return InstructionExecutability.None; }
-		}
-
-		public override void Execute(ExecutionParameters parameters) {
+		internal override void Execute(ExecutionParameters parameters) {
 			try {
 				int value = parameters.Stack.Pop().Evaluate();
 
@@ -123,6 +147,10 @@ namespace StackLang.Core.Instructions {
 			catch (IncompleteCodeException ex) {
 				throw new CodeException(ex, parameters);
 			}
+		}
+
+		public override string ToString() {
+			return operatorAsString;
 		}
 	}
 }
