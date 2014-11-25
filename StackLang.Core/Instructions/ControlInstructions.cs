@@ -8,7 +8,6 @@ namespace StackLang.Core.Instructions {
 			argument = newArgument;
 		}
 
-
 		internal override void Execute(ExecutionParameters parameters) {
 			parameters.ChangeLine(argument);
 			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Code;
@@ -16,6 +15,23 @@ namespace StackLang.Core.Instructions {
 
 		public override string ToString() {
 			return "k" + (argument + 1);
+		}
+	}
+
+	public class IncrementalJumpInstruction : Instruction {
+		readonly int argument;
+
+		public IncrementalJumpInstruction(int newArgument) {
+			argument = newArgument;
+		}
+
+		internal override void Execute(ExecutionParameters parameters) {
+			parameters.ChangeLine(parameters.CurrentLine + argument);
+			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Code;
+		}
+
+		public override string ToString() {
+			return "k" + argument.ToString("+#;-#");
 		}
 	}
 

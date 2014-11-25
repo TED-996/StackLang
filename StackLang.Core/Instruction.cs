@@ -18,6 +18,13 @@ namespace StackLang.Core {
 			if (str == "k") {
 				return new ExecuteCodeInstruction(); 
 			}
+			if (str.StartsWith("k+") || str.StartsWith("k-")) {
+				int amount;
+				if (!int.TryParse(str.Substring(1), out amount)) {
+					throw new IncompleteParseException("Amount to increment line number not a number.");
+				}
+				return new IncrementalJumpInstruction(amount);
+			}
 			if (str.StartsWith("k")) {
 				int line;
 				if (!int.TryParse(str.Substring(1), out line)) {

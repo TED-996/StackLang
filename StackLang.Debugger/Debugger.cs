@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using StackLang.Core;
 using StackLang.Core.Collections;
 using StackLang.Core.Exceptions;
@@ -81,8 +82,6 @@ namespace StackLang.Debugger {
 				}
 				Step();
 			}
-
-			Console.WriteLine("Execution ended.");
 		}
 
 		public void RequestPause() {
@@ -104,7 +103,8 @@ namespace StackLang.Debugger {
 				+ "\nEscaped: " + snapshot.InstructionEscaped);
 			Console.WriteLine("Register: " + (snapshot.Register == null ?
 				"null" : snapshot.Register.GetPrintedValue()));
-
+			Console.WriteLine("Watches: " + string.Join("; ", watches.Select(GetStringFromWatch)));
+	
 			Console.ForegroundColor = ConsoleColor.Green;
 			Console.WriteLine("STACK:");
 			Console.ForegroundColor = ConsoleColor.White;
@@ -118,9 +118,9 @@ namespace StackLang.Debugger {
 					: ConsoleColor.Gray;
 				Console.Write(snapshot.Stack[i] + " ");
 			}
-			if (snapshot.CurrentExecutionSource == ExecutionParameters.ExecutionSource.Stack) {
+			if (limit != snapshot.Stack.Count) {
 				Console.ForegroundColor = ConsoleColor.Yellow;
-				Console.Write(snapshot.Stack[snapshot.Stack.Count - 1]);
+				Console.Write(snapshot.Stack[limit]);
 			}
 
 			Console.ForegroundColor = ConsoleColor.White;
@@ -136,31 +136,39 @@ namespace StackLang.Debugger {
 			Console.WriteLine("CODE LINE:");
 			Console.ForegroundColor = ConsoleColor.White;
 
-			string lineNumber = (snapshot.CurrentLine + 1).ToString(CultureInfo.InvariantCulture) + "|";
+			Console.Write((snapshot.CurrentLine + 1).ToString(CultureInfo.InvariantCulture) + '|');
 			InstructionLine line = executionContext.InstructionCollection[snapshot.CurrentLine];
-			string lineString = lineNumber + String.Join(" ", line.InstructionStrings);
 
-			Console.WriteLine(lineString);
-			Console.WriteLine(GetCaretString(line, snapshot.CurrentInstruction, lineNumber.Length));
+			for (int i = 0; i < line.Count; i++) {
+				if (i == snapshot.CurrentInstruction) {
+					Console.ForegroundColor = snapshot.CurrentExecutionSource == ExecutionParameters.ExecutionSource.Code
+						? ConsoleColor.Yellow
+						: ConsoleColor.DarkYellow;
+				}
+				else {
+					Console.ForegroundColor = ConsoleColor.White;
+				}
+				Console.Write(line.InstructionStrings[i] + ' ');
+			}
+			Console.ForegroundColor = ConsoleColor.White;
+			Console.WriteLine();
+
 		}
 
-		static string GetCaretString(InstructionLine line, int instruction, int padding) {
-			int spaceCount = padding;
-			for (int i = 0; i < instruction; i++) {
-				spaceCount += line.InstructionStrings[i].Length + 1;
-			}
-			return new string(' ', spaceCount) + '^';
+		string GetStringFromWatch(int watch) {
+			IStackObject stackObject = snapshot.Memory[watch];
+			return "m" + watch + ": " + ((stackObject == null) ? "null" : stackObject.GetPrintedValue());
 		}
 
 		public void ToggleBreakpoint(int line) {
 			line--;
 			if (breakpoints.Contains(line)) {
 				breakpoints.Remove(line);
-				Console.Write("Breakpoint removed.");
+				Console.WriteLine("Breakpoint removed.");
 			}
 			else {
 				breakpoints.Add(line);
-				Console.Write("Breakpoint added.");
+				Console.WriteLine("Breakpoint added.");
 			}
 		}
 
@@ -168,6 +176,25 @@ namespace StackLang.Debugger {
 			Console.Write("Breakpoints:");
 			foreach (int breakpoint in breakpoints) {
 				Console.Write(" " + (breakpoint + 1));
+			}
+			Console.WriteLine();
+		}
+
+		public void ToggleWatch(int address) {
+			if (watches.Contains(address)) {
+				watches.Remove(address);
+				Console.Write("Watch removed");
+			}
+			else {
+				watches.Add(address);
+				Console.WriteLine("Watch added");
+			}
+		}
+
+		public void ListWatches() {
+			Console.Write("Watches:");
+			foreach (int watch in watches) {
+				Console.Write(" " + watch);
 			}
 			Console.WriteLine();
 		}
