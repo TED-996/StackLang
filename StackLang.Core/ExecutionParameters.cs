@@ -58,6 +58,10 @@ namespace StackLang.Core {
 			if (oneEscaped && !escapedThisTick) {
 				oneEscaped = false;
 			}
+
+			while (CurrentLine < lineLengths.Length && lineLengths[CurrentLine] == 0) {
+				CurrentLine++;
+			}
 		}
 
 		internal void ChangeLine(int newLine) {
