@@ -13,10 +13,7 @@ namespace StackLang.Core.Collections {
 			int index = 0;
 			foreach (string line in lines) {
 				try {
-					InstructionLine instructionLine = InstructionLine.BuildLineFromInstructions(GetTokensFromLine(line));
-					if (instructionLine.Count == 0) {
-						continue;
-					}
+					InstructionLine instructionLine = InstructionLine.BuildLineFromInstructions(GetTokensFromLine(line), index);
 					list.Add(instructionLine);
 					index++;
 				}

@@ -6,10 +6,13 @@ using System.Linq;
 using StackLang.Core;
 using StackLang.Core.Collections;
 using StackLang.Core.Exceptions;
+using StackLang.Core.InputOutput;
 
 namespace StackLang.Debugger {
-	public class Debugger {
-		readonly Stream codeSource;
+	public class Debugger : IDisposable {
+		readonly Parser parser;
+		readonly IInputManager inputManager;
+		readonly IOutputManager outputManager;
 
 		ExecutionContext executionContext;
 
@@ -22,8 +25,12 @@ namespace StackLang.Debugger {
 		readonly List<int> watches;
 		ExecutionSnapshot snapshot;
 
-		public Debugger(Stream newCodeSource) {
-			codeSource = newCodeSource;
+		public Debugger(Stream codeSource, Stream inputStream = null, Stream outputStream = null) {
+			parser = new Parser(codeSource);
+			inputManager = inputStream == null ? (IInputManager)new ConsoleInputManager() : new StreamInputManager(inputStream);
+			outputManager = outputStream == null ? (IOutputManager)new ConsoleOutputManager() :
+				new StreamOutputManager(outputStream);
+
 			breakpoints = new List<int>();
 			watches = new List<int>();
 
@@ -33,7 +40,7 @@ namespace StackLang.Debugger {
 
 		public void Load() {
 			try {
-				executionContext = new ExecutionContext(new Parser(codeSource).Parse());
+				executionContext = new ExecutionContext(parser.Parse(), inputManager, outputManager);
 			}
 			catch (ParseException ex) {
 				Console.WriteLine(ex);
@@ -197,6 +204,10 @@ namespace StackLang.Debugger {
 				Console.Write(" " + watch);
 			}
 			Console.WriteLine();
+		}
+
+		public void Dispose() {
+			executionContext.Dispose();
 		}
 	}
 }

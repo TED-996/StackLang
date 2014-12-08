@@ -18,23 +18,6 @@ namespace StackLang.Core.Instructions {
 		}
 	}
 
-	public class IncrementalJumpInstruction : Instruction {
-		readonly int argument;
-
-		public IncrementalJumpInstruction(int newArgument) {
-			argument = newArgument;
-		}
-
-		internal override void Execute(ExecutionParameters parameters) {
-			parameters.ChangeLine(parameters.CurrentLine + argument);
-			parameters.CurrentExecutionSource = ExecutionParameters.ExecutionSource.Code;
-		}
-
-		public override string ToString() {
-			return "k" + argument.ToString("+#;-#");
-		}
-	}
-
 	public class ExecuteStackInstruction : Instruction {
 		internal override bool ForceExecutable { get { return true; } }
 

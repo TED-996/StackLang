@@ -11,7 +11,7 @@ namespace StackLang.Core {
 			return GetType().Name;
 		}
 
-		internal static Instruction GetInstructionFromString(string str) {
+		internal static Instruction GetInstructionFromString(string str, int lineNumber) {
 			if (str == ".") {
 				return new NoOpInstruction();
 			}
@@ -23,7 +23,7 @@ namespace StackLang.Core {
 				if (!int.TryParse(str.Substring(1), out amount)) {
 					throw new IncompleteParseException("Amount to increment line number not a number.");
 				}
-				return new IncrementalJumpInstruction(amount);
+				return new JumpInstruction(lineNumber + amount);
 			}
 			if (str.StartsWith("k")) {
 				int line;

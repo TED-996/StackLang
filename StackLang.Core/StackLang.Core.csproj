@@ -47,6 +47,10 @@
     <Compile Include="ExecutionParameters.cs" />
     <Compile Include="ExecutionSnapshot.cs" />
     <Compile Include="Extensions.cs" />
+    <Compile Include="InputOutput\ConsoleInputOutput.cs" />
+    <Compile Include="InputOutput\IInputManager.cs" />
+    <Compile Include="InputOutput\IOutputManager.cs" />
+    <Compile Include="InputOutput\StreamInputOutput.cs" />
     <Compile Include="Instruction.cs" />
     <Compile Include="InstructionExecutability.cs" />
     <Compile Include="ExecutionStack.cs" />

@@ -1,5 +1,4 @@
-﻿using System;
-using StackLang.Core.Exceptions;
+﻿using StackLang.Core.Exceptions;
 
 namespace StackLang.Core.Instructions {
 	public class NoOpInstruction : Instruction {
@@ -50,11 +49,7 @@ namespace StackLang.Core.Instructions {
 
 	public class ReadInstruction : Instruction {
 		internal override void Execute(ExecutionParameters parameters) {
-			Console.ForegroundColor = ConsoleColor.Red;
-			Console.Write("<<: ");
-			Console.ForegroundColor = ConsoleColor.White;
-			
-			string line = Console.ReadLine();
+			string line = parameters.InputManager.ReadLine();
 			if (line == null) {
 				throw new CodeException("Received incomplete input", parameters);
 			}
@@ -73,10 +68,15 @@ namespace StackLang.Core.Instructions {
 	public class WriteInstruction : Instruction {
 		internal override void Execute(ExecutionParameters parameters) {
 			if (parameters.Stack.Count == 0) {
-				Console.WriteLine("Stack empty.");
+				parameters.OutputManager.WriteLine("Stack empty.");
 			}
 			else {
-				Console.WriteLine(parameters.Stack.Pop().GetPrintedValue());
+				try {
+					parameters.OutputManager.WriteLine(parameters.Stack.Pop().GetPrintedValue());
+				}
+				catch (IncompleteCodeException ex) {
+					throw new CodeException(ex, parameters);
+				}
 			}
 		}
 

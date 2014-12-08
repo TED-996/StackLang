@@ -10,14 +10,23 @@ namespace StackLang.Core.Collections {
 			InstructionStrings = new ReadOnlyCollection<string>(newInstructionStrings);
 		}
 
-		internal static InstructionLine BuildLineFromInstructions(IEnumerable<string> instructions) {
+		internal static InstructionLine BuildLineFromInstructions(IEnumerable<string> instructions, int lineIndex) {
 			List<Instruction> list = new List<Instruction>();
 			List<string> instructionStrings = new List<string>();
 			int index = 0;
+			bool commented = false;
 			foreach (var instruction in instructions) {
 				instructionStrings.Add(instruction);
+
+				if (instruction.StartsWith(":")) {
+					commented = true;
+				}
+				if (commented) {
+					continue;
+				}
+
 				try {
-					list.Add(Instruction.GetInstructionFromString(instruction));
+					list.Add(Instruction.GetInstructionFromString(instruction, lineIndex));
 					index++;
 				}
 				catch (IncompleteParseException ex) {

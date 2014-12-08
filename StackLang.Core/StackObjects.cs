@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using StackLang.Core.Exceptions;
 
 namespace StackLang.Core {
 	public interface IStackObject {
@@ -111,7 +112,8 @@ namespace StackLang.Core {
 		}
 
 		public int Evaluate() {
-			return GetStackObjectValue().Evaluate();
+			IStackObject stackObject = GetStackObjectValue();
+			return stackObject == null ? 0 : stackObject.Evaluate();
 		}
 
 		public void SetProgramMemory(ProgramMemory newMemory) {
@@ -122,6 +124,10 @@ namespace StackLang.Core {
 			if (memory == null) {
 				throw new ApplicationException("Memory not set.");
 			}
+			if (index >= memory.MemoryArea.Length) {
+				throw new IncompleteCodeException("Index out of memory.");
+			}
+
 			return memory.MemoryArea[index];
 		}
 
@@ -133,6 +139,10 @@ namespace StackLang.Core {
 			IVariableObject variableObject = stackObject as IVariableObject;
 			if (variableObject != null) {
 				stackObject = variableObject.GetStackObjectValue();
+			}
+
+			if (index >= memory.MemoryArea.Length) {
+				throw new IncompleteCodeException("Index out of memory.");
 			}
 
 			memory.MemoryArea[index] = stackObject;

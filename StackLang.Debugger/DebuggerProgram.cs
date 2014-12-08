@@ -1,13 +1,31 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace StackLang.Debugger {
 	static class DebuggerProgram {
 		static void Main(string[] args) {
 			Stream stream = new FileStream((args.Length == 0 ? "defaultCode.sl" : args[0]), FileMode.Open);
+			Stream inputStream = null;
+			Stream outputStream = null;
 
-			Debugger debugger = new Debugger(stream);
+			try {
+				string inputArg = args.FirstOrDefault(s => s.StartsWith("-i="));
+				if (inputArg != null) {
+					inputStream = new FileStream(inputArg.Substring(3), FileMode.Open);
+				}
+				string outputArg = args.FirstOrDefault(s => s.StartsWith("-o="));
+				if (outputArg != null) {
+					outputStream = new FileStream(outputArg.Substring(3), FileMode.Create);
+				}
+			}
+			catch (Exception ex) {
+				Console.WriteLine("Could not open file.\n" + ex);
+				return;
+			}
+
+			Debugger debugger = new Debugger(stream, inputStream, outputStream);
 
 			debugger.Load();
 
@@ -29,6 +47,9 @@ namespace StackLang.Debugger {
 			}
 
 			Console.WriteLine("Execution ended.");
+
+			debugger.Dispose();
+
 			Console.ReadKey(true);
 		}
 

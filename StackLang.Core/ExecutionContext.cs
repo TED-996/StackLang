@@ -2,21 +2,28 @@
 using System.Linq;
 using StackLang.Core.Collections;
 using StackLang.Core.Exceptions;
+using StackLang.Core.InputOutput;
 
 namespace StackLang.Core {
-	public class ExecutionContext {
+	public class ExecutionContext : IDisposable {
 		public readonly ExecutionParameters Parameters;
 		public readonly InstructionLineCollection InstructionCollection;
 
 		public bool ExecutionEnded { get; private set; }
 
-		public ExecutionContext(InstructionLineCollection newInstructionCollection) {
+		public ExecutionContext(InstructionLineCollection newInstructionCollection, IInputManager inputManager,
+			IOutputManager outputManager) {
 			InstructionCollection = newInstructionCollection;
-			Parameters = new ExecutionParameters(InstructionCollection.Select(line => line.Count).ToArray());
+			Parameters = new ExecutionParameters(InstructionCollection.Select(line => line.Count).ToArray(), inputManager,
+				outputManager);
+		}
+
+		public ExecutionContext(InstructionLineCollection newInstructionCollection)
+			: this(newInstructionCollection, new ConsoleInputManager(), new ConsoleOutputManager()) {
 		}
 
 		public ExecutionContext GetNewContext() {
-			return new ExecutionContext(InstructionCollection);
+			return new ExecutionContext(InstructionCollection, Parameters.InputManager, Parameters.OutputManager);
 		}
 
 		public void Tick() {
@@ -64,6 +71,10 @@ namespace StackLang.Core {
 			}
 
 			Parameters.TickEnd();
+		}
+
+		public void Dispose() {
+			Parameters.Dispose();
 		}
 	}
 }
