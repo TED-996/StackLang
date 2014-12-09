@@ -1,0 +1,25 @@
+﻿<UserControl x:Class="StackLang.Ide.CodeTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="541" d:DesignWidth="614.4"
+             Loaded="OnLoaded">
+    <ScrollViewer HorizontalScrollBarVisibility="Visible">
+		<Grid>
+			<TextBlock Width="32" HorizontalAlignment="Left" Background="Gray" Name="LineNumberBlock" 
+                       Padding="2,2,0,0" FontFamily="Consolas"/>
+			<!--<TextBox Margin="32,0,0,0" Name="TextBox" AcceptsReturn="True" AcceptsTab="True"
+					 TextChanged="OnTextBoxChanged" FontFamily="Consolas"/>-->
+			<RichTextBox Margin="32,0,0,0" Name="TextBox" AcceptsReturn="True" AcceptsTab="True"
+						 TextChanged="OnTextBoxChanged">
+				<RichTextBox.Resources>
+					<Style TargetType="Paragraph">
+						<Setter Property="Margin" Value="0" />
+					</Style>
+				</RichTextBox.Resources>
+			</RichTextBox>
+        </Grid>
+    </ScrollViewer>
+</UserControl>
