@@ -8,6 +8,9 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Xml;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.Win32;
 using StackLang.Core;
 using StackLang.Core.Exceptions;
@@ -19,16 +22,55 @@ namespace StackLang.Ide {
 		GridLength debugLength;
 		bool debugActivated;
 
+		readonly IHighlightingDefinition highlightingDefinition;
+
 		public MainWindow() {
 			InitializeComponent();
-			AddTab(new CodeTab(UpdateTabNames));
+
+			highlightingDefinition = HighlightingLoader.Load(new XmlTextReader(
+				new FileStream("StackLangSyntaxHighlighting.xshd", FileMode.Open)), new HighlightingManager());
+
+			AddTab(new CodeTab(UpdateTabNames, highlightingDefinition));
 			debugLength = new GridLength(1, GridUnitType.Star);
 			debugActivated = false;
 		}
 
 		void AddTab(CodeTab codeTab) {
-			EditorTabs.Items.Add(new TabItem {Header = codeTab.TabName, Content = codeTab});
+			TabItem item = new TabItem {Content = codeTab};
+			CodeTab codeTabCopy = codeTab;
+
+			Action closeAction = () => {
+				if (CloseTab(codeTabCopy)) {
+					EditorTabs.Items.Remove(item);
+				}
+			};
+			Action<MouseButtonEventArgs, MouseButton> clickAction = (args, button) => {
+				if (args.ChangedButton == button && args.ButtonState == MouseButtonState.Pressed) {
+					closeAction();
+				}
+			};
+
+			Button closeButton = new Button {
+				Width = 20, Height = 20, Content = "X",
+				HorizontalAlignment = HorizontalAlignment.Right,
+			};
+			closeButton.Click += (sender, args) => closeAction();
+			Grid header = new Grid {
+				Children = {
+					new TextBlock {
+						Text = codeTab.TabName, HorizontalAlignment = HorizontalAlignment.Left,
+						VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 24, 0)
+					},
+					closeButton
+				}
+			};
+			header.MouseDown += (sender, args) => clickAction(args, MouseButton.Middle);
+
+			item.Header = header;
+			
+			EditorTabs.Items.Add(item);
 			EditorTabs.SelectedIndex = EditorTabs.Items.Count - 1;
+			EditorTabs.Visibility = Visibility.Visible;
 		}
 
 		CodeTab GetCurrentTab() {
@@ -96,14 +138,14 @@ namespace StackLang.Ide {
 		}
 
 		void OnNewPressed(object sender, RoutedEventArgs e) {
-			AddTab(new CodeTab(UpdateTabNames));
+			AddTab(new CodeTab(UpdateTabNames, highlightingDefinition));
 		}
 
 		void OnOpenPressed(object sender, RoutedEventArgs e) {
 			OpenFileDialog dialog = new OpenFileDialog {Filter = "SL Files (*.sl)|*.sl|All Files (*)|*"};
 			if (dialog.ShowDialog() == true) {
 				try {
-					AddTab(new CodeTab(dialog.FileName, UpdateTabNames));
+					AddTab(new CodeTab(dialog.FileName, UpdateTabNames, highlightingDefinition));
 				}
 				catch (ApplicationException ex) {
 					OutputArea.WriteLine(ex.Message);
@@ -155,7 +197,7 @@ namespace StackLang.Ide {
 
 		void UpdateTabNames() {
 			foreach (TabItem item in EditorTabs.Items) {
-				item.Header = ((CodeTab)item.Content).TabName;
+				((TextBlock)(((Grid) item.Header).Children[0])).Text = ((CodeTab)item.Content).TabName;
 			}
 		}
 
@@ -165,20 +207,28 @@ namespace StackLang.Ide {
 				return;
 			}
 
-			CodeTab currentTab = GetCurrentTab();
-			if (currentTab.Changed) {
-				MessageBoxResult result = MessageBox.Show("Do you want to save the file you are working on" +
-					" before quitting?", "StackLang.Ide", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, 
-					MessageBoxResult.Yes);
-				if (result == MessageBoxResult.Cancel) {
-					return;
-				}
-				if (result == MessageBoxResult.Yes) {
-					SaveTab(currentTab);
-				}
-			}
+			CloseTab(GetCurrentTab());
 
 			EditorTabs.Items.RemoveAt(EditorTabs.SelectedIndex);
+
+			if (EditorTabs.Items.Count == 0) {
+				EditorTabs.Visibility = Visibility.Collapsed;
+			}
+		}
+
+		bool CloseTab(CodeTab tab) {
+			if (tab.Changed) {
+				MessageBoxResult result = MessageBox.Show("Do you want to save the file you are working on" +
+					" before quitting?", "StackLang.Ide", MessageBoxButton.YesNoCancel, MessageBoxImage.Question,
+					MessageBoxResult.Yes);
+				if (result == MessageBoxResult.Cancel) {
+					return false;
+				}
+				if (result == MessageBoxResult.Yes) {
+					SaveTab(tab);
+				}
+			}
+			return true;
 		}
 
 		void OnExitPressed(object sender, RoutedEventArgs e) {
@@ -209,7 +259,6 @@ namespace StackLang.Ide {
 					}
 				}
 			}
-
 		}
 
 		public static readonly RoutedCommand RunCommand = new RoutedCommand();

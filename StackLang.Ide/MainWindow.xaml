@@ -52,6 +52,8 @@
 					</Grid.ColumnDefinitions>
 					<TabControl Name="EditorTabs" Grid.Column="0">
 					</TabControl>
+					<Button Content="+" Width="24" Height="24" Grid.Column="0" Click="OnNewPressed" Margin="1"
+							VerticalAlignment="Top" HorizontalAlignment="Right"/>
 					<GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Left" 
 								  Visibility="Collapsed" Name="DebugSplitter"/>
 					<Grid Grid.Column="1" Margin="5,0,0,0">

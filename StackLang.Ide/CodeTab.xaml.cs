@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Xml;
 using ICSharpCode.AvalonEdit.Highlighting;
-using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 
 namespace StackLang.Ide {
 	/// <summary>
@@ -18,23 +16,28 @@ namespace StackLang.Ide {
 			private set { TextBox.Text = value; }
 		}
 
+		public bool ReadOnly {
+			get { return TextBox.IsReadOnly; }
+			set { TextBox.IsReadOnly = value; }
+		}
+
 		public string TabName {
 			get { return (Filename == null ? "Untitled" : Path.GetFileName(Filename)) + (Changed ? "*" : ""); }
 		}
 
 		readonly Action tabNameUpdateAction;
 
-		public CodeTab(Action newUpdateAction) {
+		public CodeTab(Action newUpdateAction, IHighlightingDefinition highlightingDefinition) {
 			InitializeComponent();
 			Filename = null;
 			Changed = false;
 			tabNameUpdateAction = newUpdateAction;
 
-			TextBox.SyntaxHighlighting = HighlightingLoader.Load(new XmlTextReader(
-				new FileStream("StackLangSyntaxHighlighting.xshd", FileMode.Open)), new HighlightingManager());
+			TextBox.SyntaxHighlighting = highlightingDefinition;
 		}
 
-		public CodeTab(string fileName, Action newUpdateAction) : this(newUpdateAction) {
+		public CodeTab(string fileName, Action newUpdateAction, IHighlightingDefinition highlightingDefinition)
+			: this(newUpdateAction, highlightingDefinition) {
 			Filename = fileName;
 			Load();
 		}
@@ -66,7 +69,6 @@ namespace StackLang.Ide {
 			Changed = false;
 			tabNameUpdateAction();
 		}
-
 
 		void OnTextChanged(object sender, EventArgs e) {
 			Changed = true;
