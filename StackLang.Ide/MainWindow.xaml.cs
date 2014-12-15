@@ -52,7 +52,7 @@ namespace StackLang.Ide {
 			IdeResultArea.WriteLine("Executing...");
 			OutputArea.Clear();
 
-			executionThread.Start(GetCurrentTab().TextBox.Text);
+			executionThread.Start(GetCurrentTab().Text);
 		}
 
 		void RunCode(object code) {
@@ -196,7 +196,7 @@ namespace StackLang.Ide {
 
 		void OnWindowClosing(object sender, CancelEventArgs e) {
 			if (GetCodeTabs().Any(tab => tab.Changed)) {
-				MessageBoxResult result = MessageBox.Show("Do you want to save the files you are working on" +
+				MessageBoxResult result = MessageBox.Show("Do you want to save the files you are working on " +
 					"before quitting?", "StackLang.Ide", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, 
 					MessageBoxResult.Yes);
 				if (result == MessageBoxResult.Cancel) {

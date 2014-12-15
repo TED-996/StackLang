@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
+using System.Xml;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 
 namespace StackLang.Ide {
 	/// <summary>
@@ -15,6 +12,11 @@ namespace StackLang.Ide {
 		public string Filename;
 
 		public bool Changed { get; private set; }
+
+		public string Text {
+			get { return TextBox.Text; }
+			private set { TextBox.Text = value; }
+		}
 
 		public string TabName {
 			get { return (Filename == null ? "Untitled" : Path.GetFileName(Filename)) + (Changed ? "*" : ""); }
@@ -27,6 +29,9 @@ namespace StackLang.Ide {
 			Filename = null;
 			Changed = false;
 			tabNameUpdateAction = newUpdateAction;
+
+			TextBox.SyntaxHighlighting = HighlightingLoader.Load(new XmlTextReader(
+				new FileStream("StackLangSyntaxHighlighting.xshd", FileMode.Open)), new HighlightingManager());
 		}
 
 		public CodeTab(string fileName, Action newUpdateAction) : this(newUpdateAction) {
@@ -36,33 +41,12 @@ namespace StackLang.Ide {
 
 		void Load() {
 			try {
-				new TextRange(TextBox.Document.ContentStart, TextBox.Document.ContentEnd).Text =
-					File.ReadAllText(Filename);
+				Text = File.ReadAllText(Filename);
 			}
 			catch {
 				throw new ApplicationException("File " + Filename + " could not be read.");
 			}
 			tabNameUpdateAction();
-		}
-
-		void OnLoaded(object sender, RoutedEventArgs e) {
-			UpdateLineNumbers();
-		}
-
-		void OnTextBoxChanged(object sender, TextChangedEventArgs e) {
-			Changed = true;
-
-			UpdateLineNumbers();
-			tabNameUpdateAction();
-		}
-
-		void UpdateLineNumbers() {
-			int lineCount = TextBox.Text.Count(c => c == '\n');
-			StringBuilder builder = new StringBuilder();
-			for (int i = 1; i <= lineCount + 1; i++) {
-				builder.AppendLine(i.ToString(CultureInfo.InvariantCulture));
-			}
-			LineNumberBlock.Text = builder.ToString();
 		}
 
 		public void SaveAs(string filename) {
@@ -73,7 +57,7 @@ namespace StackLang.Ide {
 
 		public void Save() {
 			try {
-				File.WriteAllText(Filename, TextBox.Text);
+				File.WriteAllText(Filename, Text);
 			}
 			catch {
 				throw new ApplicationException("Could not save to file " + Filename + ".");
@@ -83,6 +67,10 @@ namespace StackLang.Ide {
 			tabNameUpdateAction();
 		}
 
-		
+
+		void OnTextChanged(object sender, EventArgs e) {
+			Changed = true;
+			tabNameUpdateAction();
+		}
 	}
 }
