@@ -8,6 +8,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using System.Xml;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
@@ -21,8 +22,16 @@ namespace StackLang.Ide {
 
 		GridLength debugLength;
 		bool debugActivated;
+		Core.ExecutionContext executionContext;
+		DebugPane debugPane;
 
 		readonly IHighlightingDefinition highlightingDefinition;
+		const int XSize = 10;
+
+// ReSharper disable MemberCanBePrivate.Global
+		public static readonly RoutedCommand RunCommand = new RoutedCommand();
+		public static readonly RoutedCommand DebugCommand = new RoutedCommand();
+// ReSharper restore MemberCanBePrivate.Global
 
 		public MainWindow() {
 			InitializeComponent();
@@ -51,8 +60,15 @@ namespace StackLang.Ide {
 			};
 
 			Button closeButton = new Button {
-				Width = 20, Height = 20, Content = "X",
+				Width = 20,
+				Height = 20,
+				Content = new Image {
+					Source = (BitmapSource)Resources["RemoveImageSource"],
+					MaxHeight = XSize,
+					MaxWidth = XSize
+				},
 				HorizontalAlignment = HorizontalAlignment.Right,
+				Style = (Style) Resources["FlatButtonStyle"]
 			};
 			closeButton.Click += (sender, args) => closeAction();
 			Grid header = new Grid {
@@ -64,7 +80,7 @@ namespace StackLang.Ide {
 					closeButton
 				}
 			};
-			header.MouseDown += (sender, args) => clickAction(args, MouseButton.Middle);
+			item.MouseDown += (sender, args) => clickAction(args, MouseButton.Middle);
 
 			item.Header = header;
 			
@@ -84,46 +100,109 @@ namespace StackLang.Ide {
 
 		void OnRunPressed(object sender, RoutedEventArgs e) {
 			OnAbortPressed(sender, e);
-			if (EditorTabs.Items.Count == 0) {
-				OutputArea.WriteLine("No tab to run.");
-				return;
-			}
-			executionThread = new Thread(RunCode) {IsBackground = true};
 
 			IdeResultArea.Clear();
-			IdeResultArea.WriteLine("Executing...");
 			OutputArea.Clear();
 
-			executionThread.Start(GetCurrentTab().Text);
+			if (!SetExecutionContext()) {
+				return;
+			}
+
+			executionThread = new Thread(RunCode) {IsBackground = true};
+			executionThread.Start();
 		}
 
-		void RunCode(object code) {
-			byte[] bytes = Encoding.UTF8.GetBytes((string) code);
-			Parser parser = new Parser(new MemoryStream(bytes));
+		void RunCode() {
+			IdeResultArea.WriteLine("Executing...");
 			try {
-				Core.ExecutionContext context = new Core.ExecutionContext(parser.Parse(), IdeResultArea, IdeResultArea);
-				while (!context.ExecutionEnded) {
-					context.Tick();
+				while (!executionContext.ExecutionEnded) {
+					executionContext.Tick();
 				}
 				IdeResultArea.WriteLine("Execution ended.");
-			}
-			catch (ParseException ex) {
-				OutputArea.WriteLine(ex.ToString());
 			}
 			catch (CodeException ex) {
 				OutputArea.WriteLine(ex.ToString());
 			}
+
+			executionThread = null;
 		}
 
 		void OnDebugPressed(object sender, RoutedEventArgs e) {
 			OnAbortPressed(sender, e);
+
+			if (!SetExecutionContext()) {
+				return;
+			}
+
 			ActivateDebug();
-			OutputArea.WriteLine("Debug not yet implemented.");
+			debugPane.Draw();
+		}
+
+		void OnStepPressed(object sender, RoutedEventArgs e) {
+			if (!debugActivated) {
+				OnDebugPressed(sender, e);
+			}
+			if (!debugActivated) {
+				return;
+			}
+
+			if (executionThread != null && executionThread.IsAlive) {
+				OutputArea.WriteLine("Already running.");
+				return;
+			}
+
+			StepButton.IsEnabled = false;
+
+			executionThread = new Thread(() => {
+				executionContext.Tick();
+				Dispatcher.Invoke(() => {
+					debugPane.Draw();
+					StepButton.IsEnabled = true;
+				});
+				if (executionContext.ExecutionEnded) {
+					Dispatcher.Invoke(() => {
+						IdeResultArea.WriteLine("Execution ended");
+						DeactivateDebug();
+					});
+				}
+			});
+			executionThread.Start();
+		}
+
+		bool SetExecutionContext() {
+			if (EditorTabs.Items.Count == 0) {
+				OutputArea.WriteLine("No tab to run.");
+				return false;
+			}
+
+			byte[] bytes = Encoding.UTF8.GetBytes(GetCurrentTab().Text);
+			Parser parser = new Parser(new MemoryStream(bytes));
+			try {
+				executionContext = new Core.ExecutionContext(parser.Parse(), IdeResultArea, IdeResultArea);
+				OutputArea.WriteLine("Code loaded.");
+				IdeResultArea.WriteLine("Execution started.");
+			}
+			catch (ParseException ex) {
+				OutputArea.WriteLine(ex.ToString());
+				return false;
+			}
+			return true;
 		}
 
 		void ActivateDebug() {
+			if (EditorTabs.Items.Count == 0) {
+				return;
+			}
+			CodeTab tab = GetCurrentTab();
+			tab.ReadOnly = true;
+
 			DebugColumnDefinition.Width = debugLength;
 			DebugSplitter.Visibility = Visibility.Visible;
+
+			debugPane = new DebugPane(executionContext, tab, OutputArea);
+			DebugBorder.Child = debugPane;
+
+
 			debugActivated = true;
 		}
 
@@ -135,6 +214,23 @@ namespace StackLang.Ide {
 			DebugColumnDefinition.Width = new GridLength(0);
 			DebugSplitter.Visibility = Visibility.Collapsed;
 			debugActivated = false;
+			StepButton.IsEnabled = true;
+
+			if (EditorTabs.Items.Count != 0) {
+				GetCurrentTab().ReadOnly = true;
+			}
+
+			debugPane = null;
+			DebugBorder.Child = null;
+		}
+
+		void OnAbortPressed(object sender, RoutedEventArgs e) {
+			if (executionThread != null && executionThread.IsAlive) {
+				executionThread.Abort();
+				IdeResultArea.WriteLine("Execution aborted.");
+			}
+			executionThread = null;
+			DeactivateDebug();
 		}
 
 		void OnNewPressed(object sender, RoutedEventArgs e) {
@@ -235,15 +331,6 @@ namespace StackLang.Ide {
 			Close();
 		}
 
-		void OnAbortPressed(object sender, RoutedEventArgs e) {
-			if (executionThread != null) {
-				executionThread.Abort();
-				IdeResultArea.WriteLine("Execution aborted.");
-			}
-			executionThread = null;
-			DeactivateDebug();
-		}
-
 		void OnWindowClosing(object sender, CancelEventArgs e) {
 			if (GetCodeTabs().Any(tab => tab.Changed)) {
 				MessageBoxResult result = MessageBox.Show("Do you want to save the files you are working on " +
@@ -260,8 +347,5 @@ namespace StackLang.Ide {
 				}
 			}
 		}
-
-		public static readonly RoutedCommand RunCommand = new RoutedCommand();
-		public static readonly RoutedCommand DebugCommand = new RoutedCommand();
 	}
 }

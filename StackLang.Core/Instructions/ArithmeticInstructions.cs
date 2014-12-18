@@ -35,6 +35,9 @@ namespace StackLang.Core.Instructions {
 			catch (IncompleteCodeException ex) {
 				throw new CodeException(ex, parameters);
 			}
+			if (value < 0 || value >= parameters.MemorySize) {
+				throw new CodeException("Memory address out of bounds", parameters);
+			}
 			MemoryAreaObject memoryObject = new MemoryAreaObject(value);
 			memoryObject.SetProgramMemory(parameters.Memory);
 

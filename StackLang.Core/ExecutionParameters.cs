@@ -11,6 +11,7 @@ namespace StackLang.Core {
 		public int CurrentLine { get; private set; }
 		public int CurrentInstruction { get; private set; }
 		public ExecutionSource CurrentExecutionSource { get; set; }
+		public int MemorySize { get { return Memory.MemoryArea.Length; } }
 
 		internal readonly IInputManager InputManager;
 		internal readonly IOutputManager OutputManager;

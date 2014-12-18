@@ -29,17 +29,23 @@ namespace StackLang.Ide {
 
 		public string ReadLine() {
 			Brush currentBrush = null;
-			Dispatcher.Invoke(delegate {
-				currentBrush = InputTextBox.Background;
-				InputTextBox.Background = Brushes.LightCoral;
-			});
-			inputValue = null;
+			try {
+				Dispatcher.Invoke(delegate {
+					currentBrush = InputTextBox.Background;
+					InputTextBox.Background = Brushes.LightCoral;
+					FocusManager.SetFocusedElement(this, InputTextBox);
+				});
+				inputValue = null;
 
-			while (inputValue == null) {
-				Thread.Sleep(20);
+				while (inputValue == null) {
+					Thread.Sleep(20);
+				}
 			}
-
-			Dispatcher.Invoke(() => InputTextBox.Background = currentBrush);
+			finally {
+				if (currentBrush != null) {
+					Dispatcher.Invoke(() => InputTextBox.Background = currentBrush);
+				}
+			}
 			return inputValue;
 		}
 

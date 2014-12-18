@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sli="clr-namespace:StackLang.Ide"
+		xmlns:system="clr-namespace:System;assembly=mscorlib"
         Title="StackLang.IDE" Height="768" Width="1024" ResizeMode="CanResize" WindowState="Maximized" Closing="OnWindowClosing">
 	<Window.InputBindings>
 		<KeyBinding Gesture="CTRL+S" Command="Save" />
@@ -19,22 +20,63 @@
 		<CommandBinding Command="{x:Static sli:MainWindow.RunCommand}" Executed="OnRunPressed" />
 		<CommandBinding Command="{x:Static sli:MainWindow.DebugCommand}" Executed="OnDebugPressed" />
 	</Window.CommandBindings>
-	<Grid Margin="0,0,0,0">
-		<Menu Width="Auto" Height="20" VerticalAlignment="Top">
-            <MenuItem Header="File">
-				<MenuItem Header="New (Ctrl+N)" Click="OnNewPressed" />
-				<MenuItem Header="Open (Ctrl+O)" Click="OnOpenPressed" />
-				<MenuItem Header="Save (Ctrl+S)" Click="OnSavePressed" />
-				<MenuItem Header="Save As" Click="OnSaveAsPressed" />
-				<MenuItem Header="Close (Ctrl+W)" Click="OnClosePressed"/>
-				<Separator />
-				<MenuItem Header="Exit" Click="OnExitPressed" />
-			</MenuItem>
-			<MenuItem Header="Run (F9)" Click="OnRunPressed"/>
-            <MenuItem Header="Debug (F8)" Click="OnDebugPressed"/>
-			<MenuItem Header="Abort" Click="OnAbortPressed"/>
-        </Menu>
-        <Grid Margin="0,20,0,0">
+	<Window.Resources>
+		<system:Double x:Key="ImageSize">22</system:Double>
+		
+		<Image x:Key="NewImage" Source="Images/new.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="OpenImage" Source="Images/open.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="SaveImage" Source="Images/save.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="SaveAsImage" Source="Images/saveAs.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="CloseImage" Source="Images/close.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="RunImage" Source="Images/run.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="DebugImage" Source="Images/debug.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="AbortImage" Source="Images/stop.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="StepImage" Source="Images/step.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<Image x:Key="ContinueImage" Source="Images/continue.png"
+			   MaxWidth="{StaticResource ImageSize}"
+			   MaxHeight="{StaticResource ImageSize}" />
+		<BitmapImage x:Key="RemoveImageSource" UriSource="Images/remove.png"/>
+		<Style x:Key="FlatButtonStyle" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button" />
+	</Window.Resources>
+	
+	<DockPanel>
+		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
+			<ToolBar BandIndex="0">
+				<Button Command="New" Content="{StaticResource NewImage}" ToolTip="New Tab (Ctrl+N)" />
+				<Button Command="Open" Content="{StaticResource OpenImage}" ToolTip="Open (Ctrl+O)" />
+				<Button Command="Save" Content="{StaticResource SaveImage}" ToolTip="Save (Ctrl+S)" />
+				<Button Click="OnSaveAsPressed" Content="{StaticResource SaveAsImage}" ToolTip="Save As" />
+				<Button Click="OnClosePressed"  Content="{StaticResource CloseImage}" ToolTip="Close Tab (Ctrl+W)" />
+			</ToolBar>
+			<ToolBar BandIndex="1">
+				<Button Click="OnRunPressed" Content="{StaticResource RunImage}" ToolTip="Run (F9)"/>
+				<Button Click="OnDebugPressed" Content="{StaticResource DebugImage}" ToolTip="Debug (F8)"/>
+				<Button Click="OnAbortPressed" Content="{StaticResource AbortImage}" ToolTip="Abort" />
+			</ToolBar>
+			<ToolBar BandIndex="2">
+				<Button Click="OnStepPressed" Content="{StaticResource StepImage}" Name="StepButton" />
+				<Button Content="{StaticResource ContinueImage}" />
+			</ToolBar>
+		</ToolBarTray>
+		<Grid DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="3*" />
                 <ColumnDefinition Width="2*" />
@@ -47,60 +89,25 @@
 			<Border Grid.Column="0" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
 				<Grid>
 					<Grid.ColumnDefinitions>
-						<ColumnDefinition Width="3*" />
+						<ColumnDefinition Width="3*"/>
 						<ColumnDefinition Width="0" Name="DebugColumnDefinition" />
 					</Grid.ColumnDefinitions>
 					<TabControl Name="EditorTabs" Grid.Column="0">
 					</TabControl>
-					<Button Content="+" Width="24" Height="24" Grid.Column="0" Click="OnNewPressed" Margin="1"
-							VerticalAlignment="Top" HorizontalAlignment="Right"/>
 					<GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Left" 
 								  Visibility="Collapsed" Name="DebugSplitter"/>
-					<Grid Grid.Column="1" Margin="5,0,0,0">
-						<Grid.RowDefinitions>
-							<RowDefinition Height="26" />
-							<RowDefinition Height="*" />
-							<RowDefinition Height="5" />
-							<RowDefinition Height="*" />
-						</Grid.RowDefinitions>
-						<Label Content="Debug Information" Height="26" VerticalAlignment="Top" Background="Gray"
-							   Grid.Row="0"/>
-						<Border Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
-							<Grid>
-								<Label Content="Stack" Height="26" VerticalAlignment="Top" Background="LightGray" />
-								<ScrollViewer Margin="0,26,0,0" VerticalScrollBarVisibility="Visible">
-									<StackPanel Name="StackVieverStackPanel">
-										
-									</StackPanel>
-								</ScrollViewer>
-							</Grid>
-						</Border>
-						<GridSplitter Grid.Row="2" Height="5" ResizeDirection="Rows" HorizontalAlignment="Stretch" />
-						<Border Grid.Row="3" BorderBrush="Silver" BorderThickness="1">
-							<Grid>
-								<Label Content="Memory" Height="26" VerticalAlignment="Top" Background="LightGray" />
-								<ScrollViewer Margin="0,26,0,0" VerticalScrollBarVisibility="Visible">
-									<StackPanel Name="MemoryViewerStackPanel">
-
-									</StackPanel>
-								</ScrollViewer>
-							</Grid>
-						</Border>
-					</Grid>
+					<Border Margin="5,0,0,0" Grid.Column="1" x:Name="DebugBorder" />
 				</Grid>
             </Border>
 			<Border Grid.Column="1" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
 				<sli:ResultArea x:Name="IdeResultArea"/>
             </Border>
-            <Border Grid.Column="0" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
-                <!-- OUT -->
+			<Border Grid.Column="0" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
 				<sli:OutputArea x:Name="OutputArea"/>
             </Border>
             <Border Grid.Column="1" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
                 <!-- VARS -->
             </Border>
-            
-
         </Grid>
-    </Grid>
+    </DockPanel>
 </Window>

@@ -56,6 +56,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DebugPane.xaml.cs">
+      <DependentUpon>DebugPane.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OutputArea.xaml.cs">
       <DependentUpon>OutputArea.xaml</DependentUpon>
     </Compile>
@@ -63,6 +66,10 @@
       <DependentUpon>ResultArea.xaml</DependentUpon>
     </Compile>
     <Page Include="CodeTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DebugPane.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -126,6 +133,28 @@
       <Project>{d1896bbb-14c1-4726-8acb-d169a7bd689b}</Project>
       <Name>StackLang.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\continue.png" />
+    <Resource Include="Images\step.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\close.png" />
+    <Resource Include="Images\new.png" />
+    <Resource Include="Images\open.png" />
+    <Resource Include="Images\save.png" />
+    <Resource Include="Images\saveAs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\debug.png" />
+    <Resource Include="Images\run.png" />
+    <Resource Include="Images\stop.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\add.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
