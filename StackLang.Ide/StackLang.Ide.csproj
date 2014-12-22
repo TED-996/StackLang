@@ -59,6 +59,9 @@
     <Compile Include="DebugPane.xaml.cs">
       <DependentUpon>DebugPane.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EnvironmentVariables.xaml.cs">
+      <DependentUpon>EnvironmentVariables.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OutputArea.xaml.cs">
       <DependentUpon>OutputArea.xaml</DependentUpon>
     </Compile>
@@ -70,6 +73,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DebugPane.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EnvironmentVariables.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -148,13 +155,16 @@
   <ItemGroup>
     <Resource Include="Images\debug.png" />
     <Resource Include="Images\run.png" />
-    <Resource Include="Images\stop.png" />
+    <Resource Include="Images\abort.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\remove.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pause.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

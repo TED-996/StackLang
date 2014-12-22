@@ -81,7 +81,7 @@ namespace StackLang.Core {
 				return new ValueInstruction(new IntObject(intValue));
 			}
 
-			throw new IncompleteParseException("Instruction " + str + "doesn't exist.");
+			throw new IncompleteParseException("Instruction " + str + " doesn't exist.");
 		}
 	}
 }

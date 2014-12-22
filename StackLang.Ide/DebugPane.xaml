@@ -44,7 +44,7 @@
 				<DockPanel Dock="Bottom" Height="26">
 					<Button Content="{StaticResource AddWatchImage}" DockPanel.Dock="Right"
 							Command="{x:Static sli:DebugPane.NewWatchCommand}"/>
-					<TextBox Name="NewWatchTextBox" DockPanel.Dock="Left">
+					<TextBox Name="NewWatchTextBox" DockPanel.Dock="Left" PreviewTextInput="OnWatchTextInputPreview">
 						<TextBox.InputBindings>
 							<KeyBinding Key="Enter" Command="{x:Static sli:DebugPane.NewWatchCommand}" />
 						</TextBox.InputBindings>

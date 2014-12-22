@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Windows.Input;
 using System.Windows.Media;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Document;
@@ -7,9 +9,6 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Rendering;
 
 namespace StackLang.Ide {
-	/// <summary>
-	/// Interaction logic for CodeTab.xaml
-	/// </summary>
 	public partial class CodeTab {
 		public string Filename;
 
@@ -29,8 +28,15 @@ namespace StackLang.Ide {
 			get { return (Filename == null ? "Untitled" : Path.GetFileName(Filename)) + (Changed ? "*" : ""); }
 		}
 
+		public string InputFilename { get; set; }
+		public string OutputFilename { get; set; }
+
+		readonly List<int> breakpoints;
+
 		readonly Action tabNameUpdateAction;
 		readonly InstructionHighlighter highlighter;
+
+		public static readonly RoutedCommand BreakpointToggle = new RoutedCommand();
 
 		public CodeTab(Action newUpdateAction, IHighlightingDefinition highlightingDefinition) {
 			InitializeComponent();
@@ -38,15 +44,64 @@ namespace StackLang.Ide {
 			Changed = false;
 			tabNameUpdateAction = newUpdateAction;
 
+			breakpoints = new List<int>();
+
 			TextBox.SyntaxHighlighting = highlightingDefinition;
 			highlighter = new InstructionHighlighter(TextBox);
+			TextBox.TextArea.TextView.LineTransformers.Add(new BreakpointHighlighter(breakpoints));
 			TextBox.TextArea.TextView.LineTransformers.Add(highlighter);
-		}
 
+		}
+		
 		public CodeTab(string fileName, Action newUpdateAction, IHighlightingDefinition highlightingDefinition)
 			: this(newUpdateAction, highlightingDefinition) {
 			Filename = fileName;
 			Load();
+		}
+
+		void Load() {
+			try {
+				Text = File.ReadAllText(Filename);
+			}
+			catch {
+				throw new ApplicationException("File " + Filename + " could not be read.");
+			}
+			Changed = false;
+			tabNameUpdateAction();
+		}
+
+		void OnTextChanged(object sender, EventArgs e) {
+			Changed = true;
+			tabNameUpdateAction();
+
+			if (breakpoints.RemoveAll(b => b > TextBox.LineCount) != 0) {
+				TextBox.TextArea.TextView.Redraw();
+			}
+		}
+
+		void OnBreakpointTextInputPreview(object sender, TextCompositionEventArgs e) {
+			int value;
+			if (!string.IsNullOrEmpty(BreakpointTextBox.Text) && !int.TryParse(BreakpointTextBox.Text, out value)) {
+				e.Handled = false;
+			}
+		}
+
+		void OnBreakpointToggle(object sender, ExecutedRoutedEventArgs e) {
+			int breakpoint;
+			if (!int.TryParse(BreakpointTextBox.Text, out breakpoint)) {
+				return;
+			}
+			if (breakpoint > 0 && breakpoint <= TextBox.LineCount) {
+				if (!breakpoints.Remove(breakpoint)) {
+					breakpoints.Add(breakpoint);
+				}
+				TextBox.TextArea.TextView.Redraw();
+			}
+			BreakpointTextBox.Clear();
+		}
+
+		public bool IsBreakpoint(int currentLine) {
+			return breakpoints.Contains(currentLine + 1);
 		}
 
 		public void SetHighlight(int line, int instruction, bool dim) {
@@ -60,16 +115,8 @@ namespace StackLang.Ide {
 
 		public void SetHighlghtEnabled(bool enabled) {
 			highlighter.Enabled = enabled;
-		}
 
-		void Load() {
-			try {
-				Text = File.ReadAllText(Filename);
-			}
-			catch {
-				throw new ApplicationException("File " + Filename + " could not be read.");
-			}
-			tabNameUpdateAction();
+			TextBox.TextArea.TextView.Redraw();
 		}
 
 		public void SaveAs(string filename) {
@@ -90,11 +137,6 @@ namespace StackLang.Ide {
 			tabNameUpdateAction();
 		}
 
-		void OnTextChanged(object sender, EventArgs e) {
-			Changed = true;
-			tabNameUpdateAction();
-		}
-
 		class InstructionHighlighter : DocumentColorizingTransformer {
 			public bool Enabled { get; set; }
 			public int Line { get; set; }
@@ -108,7 +150,7 @@ namespace StackLang.Ide {
 			}
 
 			protected override void ColorizeLine(DocumentLine line) {
-				if (line.IsDeleted || line.LineNumber != Line) {
+				if (!Enabled || line.IsDeleted || line.LineNumber != Line) {
 					return;
 				}
 				//There might be a better way of doing this, I'm not sure.
@@ -140,6 +182,20 @@ namespace StackLang.Ide {
 				ChangeLinePart(startIndex, index, element => {
 					element.BackgroundBrush = DimHighlight ? Brushes.LightYellow : Brushes.Yellow;
 				});
+			}
+		}
+
+		class BreakpointHighlighter : DocumentColorizingTransformer {
+			readonly List<int> breakpoints;
+
+			public BreakpointHighlighter(List<int> newBreakpoints) {
+				breakpoints = newBreakpoints;
+			}
+
+			protected override void ColorizeLine(DocumentLine line) {
+				if (breakpoints.Contains(line.LineNumber)) {
+					ChangeLinePart(line.Offset, line.EndOffset, element => element.BackgroundBrush = Brushes.LightCoral);
+				}
 			}
 		}
 	}

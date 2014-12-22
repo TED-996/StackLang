@@ -102,6 +102,13 @@ namespace StackLang.Ide {
 			};
 		}
 
+		void OnWatchTextInputPreview(object sender, TextCompositionEventArgs e) {
+			int address;
+			if (!int.TryParse(NewWatchTextBox.Text, out address)) {
+				e.Handled = false;
+			}
+		}
+
 		void OnNewWatch(object sender, ExecutedRoutedEventArgs e) {
 			int address;
 			if (!int.TryParse(NewWatchTextBox.Text, out address)) {

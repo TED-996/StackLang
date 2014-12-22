@@ -8,13 +8,16 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using System.Xml;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.Win32;
 using StackLang.Core;
 using StackLang.Core.Exceptions;
+using StackLang.Core.InputOutput;
 
 namespace StackLang.Ide {
 	public partial class MainWindow {
@@ -24,6 +27,10 @@ namespace StackLang.Ide {
 		bool debugActivated;
 		Core.ExecutionContext executionContext;
 		DebugPane debugPane;
+		DockPanel debugHeader;
+		CodeTab debugTab;
+		Brush defaultTabBackground;
+		volatile bool pauseDebug;
 
 		readonly IHighlightingDefinition highlightingDefinition;
 		const int XSize = 10;
@@ -31,6 +38,7 @@ namespace StackLang.Ide {
 // ReSharper disable MemberCanBePrivate.Global
 		public static readonly RoutedCommand RunCommand = new RoutedCommand();
 		public static readonly RoutedCommand DebugCommand = new RoutedCommand();
+		public static readonly RoutedCommand StepCommand = new RoutedCommand();
 // ReSharper restore MemberCanBePrivate.Global
 
 		public MainWindow() {
@@ -71,14 +79,20 @@ namespace StackLang.Ide {
 				Style = (Style) Resources["FlatButtonStyle"]
 			};
 			closeButton.Click += (sender, args) => closeAction();
-			Grid header = new Grid {
+			DockPanel.SetDock(closeButton, Dock.Right);
+			TextBlock block = new TextBlock {
+				Text = codeTab.TabName,
+				HorizontalAlignment = HorizontalAlignment.Left,
+				VerticalAlignment = VerticalAlignment.Center,
+				Margin = new Thickness(0, 0, 24, 0)
+			};
+			DockPanel.SetDock(block, Dock.Left);
+
+			DockPanel header = new DockPanel {
 				Children = {
-					new TextBlock {
-						Text = codeTab.TabName, HorizontalAlignment = HorizontalAlignment.Left,
-						VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 24, 0)
-					},
-					closeButton
-				}
+					closeButton,
+					block
+				},
 			};
 			item.MouseDown += (sender, args) => clickAction(args, MouseButton.Middle);
 
@@ -90,12 +104,18 @@ namespace StackLang.Ide {
 		}
 
 		CodeTab GetCurrentTab() {
-			TabItem item = (TabItem) EditorTabs.SelectedItem;
+			TabItem item = (TabItem) EditorTabs.Items[EditorTabs.SelectedIndex];
 			return item.Content as CodeTab;
 		}
 
 		IEnumerable<CodeTab> GetCodeTabs() {
 			return EditorTabs.Items.Cast<TabItem>().Select(item => (CodeTab) item.Content);
+		}
+
+		void OnTabChanged(object sender, SelectionChangedEventArgs e) {
+			//We do this because we have to wait until the tabcontrol has finished removing that tab.
+			Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+				(Action) (() => EnvironmentVariables.SetTab(EditorTabs.Items.Count == 0 ? null : GetCurrentTab())));
 		}
 
 		void OnRunPressed(object sender, RoutedEventArgs e) {
@@ -123,8 +143,15 @@ namespace StackLang.Ide {
 			catch (CodeException ex) {
 				OutputArea.WriteLine(ex.ToString());
 			}
+			finally {
+				if (executionContext != null) {
+					executionContext.Dispose();
+					executionContext = null;
+				}
 
-			executionThread = null;
+				executionThread = null;
+			}
+
 		}
 
 		void OnDebugPressed(object sender, RoutedEventArgs e) {
@@ -155,6 +182,7 @@ namespace StackLang.Ide {
 
 			executionThread = new Thread(() => {
 				executionContext.Tick();
+
 				Dispatcher.Invoke(() => {
 					debugPane.Draw();
 					StepButton.IsEnabled = true;
@@ -164,9 +192,68 @@ namespace StackLang.Ide {
 						IdeResultArea.WriteLine("Execution ended");
 						DeactivateDebug();
 					});
+
+					if (executionContext != null) {
+						executionContext.Dispose();
+						executionContext = null;
+					}
 				}
-			});
+			}) {
+				IsBackground = true
+			};
 			executionThread.Start();
+		}
+
+		void OnContinuePressed(object sender, RoutedEventArgs e) {
+			if (!debugActivated) {
+				OnDebugPressed(sender, e);
+			}
+			if (!debugActivated) {
+				return;
+			}
+
+			if (executionThread != null && executionThread.IsAlive) {
+				OutputArea.WriteLine("Already running.");
+				return;
+			}
+
+			StepButton.IsEnabled = false;
+			PauseButton.IsEnabled = true;
+
+			pauseDebug = false;
+
+			executionThread = new Thread(() => {
+				while (!executionContext.ExecutionEnded && !pauseDebug) {
+					executionContext.Tick();
+					if (executionContext.Parameters.CurrentInstruction == 0 &&
+					    debugTab.IsBreakpoint(executionContext.Parameters.CurrentLine)) {
+						break;
+					}
+				}
+				pauseDebug = false;
+				Dispatcher.Invoke(() => {
+					debugPane.Draw();
+					StepButton.IsEnabled = true;
+				});
+				if (executionContext.ExecutionEnded) {
+					Dispatcher.Invoke(() => {
+						IdeResultArea.WriteLine("Execution ended");
+						DeactivateDebug();
+					});
+
+					if (executionContext != null) {
+						executionContext.Dispose();
+						executionContext = null;
+					}
+				}
+			}) {
+				IsBackground = true
+			};
+			executionThread.Start();
+		}
+
+		void OnPausePressed(object sender, RoutedEventArgs e) {
+			pauseDebug = true;
 		}
 
 		bool SetExecutionContext() {
@@ -175,15 +262,68 @@ namespace StackLang.Ide {
 				return false;
 			}
 
-			byte[] bytes = Encoding.UTF8.GetBytes(GetCurrentTab().Text);
+			if (executionContext != null) {
+				executionContext.Dispose();
+			}
+
+			CodeTab tab = GetCurrentTab();
+			IInputManager inputManager = IdeResultArea;
+			IOutputManager outputManager = IdeResultArea;
+
+			string directory = tab.Filename == null ?
+					Directory.GetCurrentDirectory() : Path.GetDirectoryName(tab.Filename);
+
+			if (!string.IsNullOrEmpty(tab.InputFilename)) {
+				if (directory == null) {
+					OutputArea.WriteLine("Could not get working directory.");
+					return false;
+				}
+				string inFilename = Path.Combine(directory, tab.InputFilename);
+				FileStream stream = null;
+				try {
+					stream = new FileStream(inFilename, FileMode.Open, FileAccess.Read);
+					inputManager = new StreamInputManager(stream);
+				}
+				catch {
+					OutputArea.WriteLine("Could not open input file " + inFilename);
+					if (stream != null) {
+						stream.Dispose();
+					}
+					return false;
+				}
+			}
+			if (!string.IsNullOrEmpty(tab.OutputFilename)) {
+				if (directory == null) {
+					OutputArea.WriteLine("Could not get working directory.");
+					return false;
+				}
+				string outFilename = Path.Combine(directory, tab.OutputFilename);
+				FileStream stream = null;
+				try {
+					stream = new FileStream(outFilename, FileMode.Create, FileAccess.Write);
+					outputManager = new StreamOutputManager(stream);
+				}
+				catch {
+					OutputArea.WriteLine("Could not open output file " + outFilename);
+					if (stream != null) {
+						stream.Dispose();
+					}
+					return false;
+				}
+			}
+
+			byte[] bytes = Encoding.UTF8.GetBytes(tab.Text);
 			Parser parser = new Parser(new MemoryStream(bytes));
+			
 			try {
-				executionContext = new Core.ExecutionContext(parser.Parse(), IdeResultArea, IdeResultArea);
+				executionContext = new Core.ExecutionContext(parser.Parse(), inputManager, outputManager);
 				OutputArea.WriteLine("Code loaded.");
 				IdeResultArea.WriteLine("Execution started.");
 			}
 			catch (ParseException ex) {
 				OutputArea.WriteLine(ex.ToString());
+				inputManager.Dispose();
+				outputManager.Dispose();
 				return false;
 			}
 			return true;
@@ -193,15 +333,24 @@ namespace StackLang.Ide {
 			if (EditorTabs.Items.Count == 0) {
 				return;
 			}
-			CodeTab tab = GetCurrentTab();
-			tab.ReadOnly = true;
+			debugTab = GetCurrentTab();
+			debugTab.ReadOnly = true;
+
+			debugHeader = (DockPanel)((TabItem)EditorTabs.SelectedItem).Header;
+
+			//Because Resharper.
+			if (!(Equals(debugHeader.Background, Brushes.Yellow))) {
+				defaultTabBackground = debugHeader.Background;
+				debugHeader.Background = Brushes.Yellow;
+			}
 
 			DebugColumnDefinition.Width = debugLength;
 			DebugSplitter.Visibility = Visibility.Visible;
 
-			debugPane = new DebugPane(executionContext, tab, OutputArea);
+			debugPane = new DebugPane(executionContext, debugTab, OutputArea);
 			DebugBorder.Child = debugPane;
 
+			PauseButton.IsEnabled = false;
 
 			debugActivated = true;
 		}
@@ -216,9 +365,14 @@ namespace StackLang.Ide {
 			debugActivated = false;
 			StepButton.IsEnabled = true;
 
+			debugHeader.Background = defaultTabBackground;
+			debugTab.SetHighlghtEnabled(false);
+
 			if (EditorTabs.Items.Count != 0) {
-				GetCurrentTab().ReadOnly = true;
+				debugTab.ReadOnly = false;
 			}
+
+			PauseButton.IsEnabled = false;
 
 			debugPane = null;
 			DebugBorder.Child = null;
@@ -231,6 +385,11 @@ namespace StackLang.Ide {
 			}
 			executionThread = null;
 			DeactivateDebug();
+
+			if (executionContext != null) {
+				executionContext.Dispose();
+				executionContext = null;
+			}
 		}
 
 		void OnNewPressed(object sender, RoutedEventArgs e) {
@@ -293,7 +452,7 @@ namespace StackLang.Ide {
 
 		void UpdateTabNames() {
 			foreach (TabItem item in EditorTabs.Items) {
-				((TextBlock)(((Grid) item.Header).Children[0])).Text = ((CodeTab)item.Content).TabName;
+				((TextBlock)(((DockPanel) item.Header).Children[1])).Text = ((CodeTab)item.Content).TabName;
 			}
 		}
 

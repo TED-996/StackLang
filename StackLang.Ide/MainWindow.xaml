@@ -11,6 +11,7 @@
 		<KeyBinding Gesture="CTRL+O" Command="Open" />
 		<KeyBinding Gesture="F9" Command="{x:Static sli:MainWindow.RunCommand}" />
 		<KeyBinding Gesture="F8" Command="{x:Static sli:MainWindow.DebugCommand}" />
+		<KeyBinding Gesture="F11" Command="{x:Static sli:MainWindow.StepCommand}" />
 	</Window.InputBindings>
 	<Window.CommandBindings>
 		<CommandBinding Command="Save" Executed="OnSavePressed" />
@@ -19,40 +20,11 @@
 		<CommandBinding Command="New" Executed="OnNewPressed" />
 		<CommandBinding Command="{x:Static sli:MainWindow.RunCommand}" Executed="OnRunPressed" />
 		<CommandBinding Command="{x:Static sli:MainWindow.DebugCommand}" Executed="OnDebugPressed" />
+		<CommandBinding Command="{x:Static sli:MainWindow.StepCommand}" Executed="OnStepPressed" />
 	</Window.CommandBindings>
 	<Window.Resources>
 		<system:Double x:Key="ImageSize">22</system:Double>
-		
-		<Image x:Key="NewImage" Source="Images/new.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="OpenImage" Source="Images/open.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="SaveImage" Source="Images/save.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="SaveAsImage" Source="Images/saveAs.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="CloseImage" Source="Images/close.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="RunImage" Source="Images/run.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="DebugImage" Source="Images/debug.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="AbortImage" Source="Images/stop.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="StepImage" Source="Images/step.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
-		<Image x:Key="ContinueImage" Source="Images/continue.png"
-			   MaxWidth="{StaticResource ImageSize}"
-			   MaxHeight="{StaticResource ImageSize}" />
+
 		<BitmapImage x:Key="RemoveImageSource" UriSource="Images/remove.png"/>
 		<Style x:Key="FlatButtonStyle" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" TargetType="Button" />
 	</Window.Resources>
@@ -60,20 +32,54 @@
 	<DockPanel>
 		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
 			<ToolBar BandIndex="0">
-				<Button Command="New" Content="{StaticResource NewImage}" ToolTip="New Tab (Ctrl+N)" />
-				<Button Command="Open" Content="{StaticResource OpenImage}" ToolTip="Open (Ctrl+O)" />
-				<Button Command="Save" Content="{StaticResource SaveImage}" ToolTip="Save (Ctrl+S)" />
-				<Button Click="OnSaveAsPressed" Content="{StaticResource SaveAsImage}" ToolTip="Save As" />
-				<Button Click="OnClosePressed"  Content="{StaticResource CloseImage}" ToolTip="Close Tab (Ctrl+W)" />
+				<Button Command="New" ToolTip="New Tab (Ctrl+N)">
+					<Image Source="Images/new.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Command="Open" ToolTip="Open (Ctrl+O)">
+					<Image Source="Images/open.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Command="Save" ToolTip="Save (Ctrl+S)">
+					<Image Source="Images/save.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Click="OnSaveAsPressed" ToolTip="Save As" >
+					<Image Source="Images/saveAs.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Click="OnClosePressed" ToolTip="Close Tab (Ctrl+W)" >
+					<Image Source="Images/close.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="1">
-				<Button Click="OnRunPressed" Content="{StaticResource RunImage}" ToolTip="Run (F9)"/>
-				<Button Click="OnDebugPressed" Content="{StaticResource DebugImage}" ToolTip="Debug (F8)"/>
-				<Button Click="OnAbortPressed" Content="{StaticResource AbortImage}" ToolTip="Abort" />
+				<Button Click="OnRunPressed" ToolTip="Run (F9)">
+					<Image Source="Images/run.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Click="OnDebugPressed" ToolTip="Debug (F8)">
+					<Image Source="Images/debug.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Click="OnAbortPressed" ToolTip="Abort">
+					<Image Source="Images/abort.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="2">
-				<Button Click="OnStepPressed" Content="{StaticResource StepImage}" Name="StepButton" />
-				<Button Content="{StaticResource ContinueImage}" />
+				<Button Command="{x:Static sli:MainWindow.StepCommand}" Name="StepButton" ToolTip="Step (F11)">
+					<Image Source="Images/step.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Click="OnContinuePressed" ToolTip="Continue">
+					<Image Source="Images/continue.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
+				<Button Click="OnPausePressed" ToolTip="Pause" Name="PauseButton" IsEnabled="False">
+					<Image Source="Images/pause.png" 
+						   MaxWidth="{StaticResource ImageSize}" MaxHeight="{StaticResource ImageSize}"/>
+				</Button>
 			</ToolBar>
 		</ToolBarTray>
 		<Grid DockPanel.Dock="Top">
@@ -83,7 +89,7 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="3*" />
-                <RowDefinition />
+                <RowDefinition Height="1*"/>
             </Grid.RowDefinitions>
 
 			<Border Grid.Column="0" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
@@ -92,7 +98,7 @@
 						<ColumnDefinition Width="3*"/>
 						<ColumnDefinition Width="0" Name="DebugColumnDefinition" />
 					</Grid.ColumnDefinitions>
-					<TabControl Name="EditorTabs" Grid.Column="0">
+					<TabControl Name="EditorTabs" SelectionChanged="OnTabChanged" Grid.Column="0">
 					</TabControl>
 					<GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Left" 
 								  Visibility="Collapsed" Name="DebugSplitter"/>
@@ -106,7 +112,7 @@
 				<sli:OutputArea x:Name="OutputArea"/>
             </Border>
             <Border Grid.Column="1" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
-                <!-- VARS -->
+               <sli:EnvironmentVariables x:Name="EnvironmentVariables"/>
             </Border>
         </Grid>
     </DockPanel>
