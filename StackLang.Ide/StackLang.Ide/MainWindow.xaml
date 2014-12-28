@@ -5,28 +5,102 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ignore="http://www.ignore.com"
         mc:Ignorable="d ignore"
-        Height="300"
-        Width="300"
-        Title="MVVM Light Application"
+        Height="768"
+        Width="1024"
+        Title="StackLang.Ide"
         DataContext="{Binding Main, Source={StaticResource Locator}}">
-    
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Skins/MainSkin.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
 
-    <Grid x:Name="LayoutRoot">
+	<Window.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceDictionary Source="Skins/MainSkin.xaml" />
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+	</Window.Resources>
+	<DockPanel>
+		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
+			<ToolBar BandIndex="0">
+				<Button Command="{Binding AddTabCommand}" ToolTip="New Tab (Ctrl+N)">
+					<Image Source="Images/new.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Open (Ctrl+O)">
+					<Image Source="Images/open.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Save (Ctrl+S)">
+					<Image Source="Images/save.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Save As" >
+					<Image Source="Images/saveAs.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button  ToolTip="Close Tab (Ctrl+W)" >
+					<Image Source="Images/close.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+			</ToolBar>
+			<ToolBar BandIndex="1">
+				<Button ToolTip="Run (F9)">
+					<Image Source="Images/run.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Debug (F8)">
+					<Image Source="Images/debug.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Abort">
+					<Image Source="Images/abort.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+			</ToolBar>
+			<ToolBar BandIndex="2">
+				<Button ToolTip="Step (F11)">
+					<Image Source="Images/step.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Continue">
+					<Image Source="Images/continue.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+				<Button ToolTip="Pause">
+					<Image Source="Images/pause.png" 
+						   MaxWidth="22" MaxHeight="22"/>
+				</Button>
+			</ToolBar>
+		</ToolBarTray>
+		<Grid DockPanel.Dock="Top">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="3*" />
+				<ColumnDefinition Width="2*" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="3*" />
+				<RowDefinition Height="1*"/>
+			</Grid.RowDefinitions>
 
-        <TextBlock FontSize="36"
-                   FontWeight="Bold"
-                   Foreground="Purple"
-                   Text="{Binding WelcomeTitle}"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"
-                   TextWrapping="Wrap" />
-
-    </Grid>
+			<Border Grid.Column="0" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
+				<Grid>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="3*"/>
+						<ColumnDefinition Width="0" />
+					</Grid.ColumnDefinitions>
+					<ContentControl Content="{Binding EditorTabViewModels}"
+									ContentTemplate="{StaticResource EditorTabControlTemplate}"
+									Grid.Row="0"
+									/>
+					<GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Left" 
+								  Visibility="Collapsed"/>
+					<Border Margin="5,0,0,0" Grid.Column="1"/>
+				</Grid>
+			</Border>
+			<Border Grid.Column="1" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
+			</Border>
+			<Border Grid.Column="0" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
+			</Border>
+			<Border Grid.Column="1" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
+			</Border>
+		</Grid>
+	</DockPanel>
 </Window>
