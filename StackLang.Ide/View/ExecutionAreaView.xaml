@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="StackLang.Ide.View.ExecutionAreaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModel="clr-namespace:StackLang.Ide.ViewModel"
+             xmlns:helpers="clr-namespace:StackLang.Ide.Helpers"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             d:DataContext="{d:DesignInstance Type=viewModel:ExecutionAreaViewModel}">
+	<UserControl.Resources>
+		<helpers:BoolToBrushConverter x:Key="BorderBrushConverter" TrueBrush="Red" FalseBrush="Silver"/>
+	</UserControl.Resources>
+	<DockPanel>
+		<Label Content="Execution Output"
+			   Height="26"
+			   Background="Gray"
+			   DockPanel.Dock="Top"
+			   />
+		<DockPanel DockPanel.Dock="Bottom">
+			<Label Content="Input:"
+				   Background="Gray"/>
+			<TextBox Height="26"
+					 Text="{Binding InputText}"
+					 BorderBrush="{Binding AwaitingInput, Converter={StaticResource BorderBrushConverter}}"
+					 IsEnabled="{Binding AwaitingInput}"
+			         DockPanel.Dock="Left">
+				<TextBox.InputBindings>
+					<KeyBinding Key="Enter" Command="{Binding InputEnterCommand}" />
+				</TextBox.InputBindings>
+			</TextBox>
+		</DockPanel>
+		<ScrollViewer DockPanel.Dock="Top">
+			<TextBlock TextWrapping="Wrap"
+					   Text="{Binding OutputText}"/>
+		</ScrollViewer>
+
+	</DockPanel>
+</UserControl>

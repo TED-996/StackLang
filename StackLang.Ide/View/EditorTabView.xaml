@@ -15,7 +15,6 @@
 			Document="{Binding Document}"
 			ShowLineNumbers="True"
 			SyntaxHighlighting="{Binding Highlighting}"
-			IsModified="{Binding TextModified, Mode=TwoWay}"
 			DockPanel.Dock="Top"
 			>
 		<i:Interaction.Triggers>

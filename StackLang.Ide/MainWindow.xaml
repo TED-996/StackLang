@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ignore="http://www.ignore.com"
+        xmlns:helpers="clr-namespace:StackLang.Ide.Helpers"
         mc:Ignorable="d ignore"
         Height="768"
         Width="1024"
@@ -20,23 +21,28 @@
 	<DockPanel>
 		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
 			<ToolBar BandIndex="0">
-				<Button Command="{Binding AddTabCommand}" ToolTip="New Tab (Ctrl+N)">
+				<Button Command="{Binding NewTabCommand}"
+						ToolTip="New Tab (Ctrl+N)">
 					<Image Source="Images/new.png" 
 						   MaxWidth="22" MaxHeight="22"/>
 				</Button>
-				<Button ToolTip="Open (Ctrl+O)">
+				<Button Command="{Binding OpenFileCommand}"
+						ToolTip="Open (Ctrl+O)">
 					<Image Source="Images/open.png" 
 						   MaxWidth="22" MaxHeight="22"/>
 				</Button>
-				<Button ToolTip="Save (Ctrl+S)">
+				<Button Command="{Binding SaveCommand}"
+						ToolTip="Save (Ctrl+S)">
 					<Image Source="Images/save.png" 
 						   MaxWidth="22" MaxHeight="22"/>
 				</Button>
-				<Button ToolTip="Save As" >
+				<Button Command="{Binding SaveAsCommand}"
+						ToolTip="Save As" >
 					<Image Source="Images/saveAs.png" 
 						   MaxWidth="22" MaxHeight="22"/>
 				</Button>
-				<Button  ToolTip="Close Tab (Ctrl+W)" >
+				<Button Command="{Binding CloseCommand}"
+						ToolTip="Close Tab (Ctrl+W)" >
 					<Image Source="Images/close.png" 
 						   MaxWidth="22" MaxHeight="22"/>
 				</Button>
@@ -86,10 +92,13 @@
 						<ColumnDefinition Width="3*"/>
 						<ColumnDefinition Width="0" />
 					</Grid.ColumnDefinitions>
-					<ContentControl Content="{Binding EditorTabViewModels}"
-									ContentTemplate="{StaticResource EditorTabControlTemplate}"
-									Grid.Row="0"
-									/>
+					<TabControl IsSynchronizedWithCurrentItem="True" 
+								ItemsSource="{Binding EditorTabViewModels}"
+								ItemTemplate="{StaticResource EditorTabHeaderTemplate}"
+								SelectedItem="{Binding SelectedTabViewModel, Mode=TwoWay}"
+								helpers:TabContent.IsCached="True"
+								Grid.Row="0">
+					</TabControl>
 					<GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Left" 
 								  Visibility="Collapsed"/>
 					<Border Margin="5,0,0,0" Grid.Column="1"/>

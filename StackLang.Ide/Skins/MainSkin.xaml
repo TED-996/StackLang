@@ -3,12 +3,15 @@
                     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                     xmlns:viewModel="clr-namespace:StackLang.Ide.ViewModel"
-                    xmlns:helpers="clr-namespace:StackLang.Ide.Helpers"
                     xmlns:view="clr-namespace:StackLang.Ide.View"
                     mc:Ignorable="d">
 	
 	<DataTemplate DataType="{x:Type viewModel:EditorTabViewModel}">
 		<view:EditorTabView />
+	</DataTemplate>
+	
+	<DataTemplate DataType="{x:Type viewModel:ExecutionAreaViewModel}">
+		<view:ExecutionAreaView />
 	</DataTemplate>
 
 	<DataTemplate x:Key="EditorTabHeaderTemplate">
@@ -31,14 +34,6 @@
 				</Button.Content>
 			</Button>
 		</DockPanel>
-	</DataTemplate>
-
-	<DataTemplate x:Key="EditorTabControlTemplate">
-		<TabControl IsSynchronizedWithCurrentItem="True" 
-					ItemsSource="{Binding}"
-					ItemTemplate="{StaticResource EditorTabHeaderTemplate}"
-					helpers:TabContent.IsCached="True">
-		</TabControl>
 	</DataTemplate>
 
 </ResourceDictionary>
