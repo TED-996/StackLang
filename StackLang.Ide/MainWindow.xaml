@@ -9,7 +9,8 @@
         Height="768"
         Width="1024"
         Title="StackLang.Ide"
-        DataContext="{Binding Main, Source={StaticResource Locator}}">
+        DataContext="{Binding Main, Source={StaticResource Locator}}"
+		WindowState="Maximized">
 
 	<Window.Resources>
 		<ResourceDictionary>
@@ -48,7 +49,8 @@
 				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="1">
-				<Button ToolTip="Run (F9)">
+				<Button Command="{Binding RunCommand}"
+						ToolTip="Run (F9)">
 					<Image Source="Images/run.png" 
 						   MaxWidth="22" MaxHeight="22"/>
 				</Button>
@@ -105,8 +107,10 @@
 				</Grid>
 			</Border>
 			<Border Grid.Column="1" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
+				<ContentControl Content="{Binding ExecutionAreaViewModel}" />
 			</Border>
 			<Border Grid.Column="0" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
+				<ContentControl Content="{Binding OutputAreaViewModel}" />
 			</Border>
 			<Border Grid.Column="1" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
 			</Border>

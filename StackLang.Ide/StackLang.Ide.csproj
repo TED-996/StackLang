@@ -78,22 +78,29 @@
     <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\FileDialogHelpers.cs" />
     <Compile Include="Helpers\FileException.cs" />
+    <Compile Include="Helpers\FocusHelper.cs" />
     <Compile Include="Helpers\TabContent.cs" />
     <Compile Include="Model\DebuggerModel.cs" />
     <Compile Include="Model\ExecutionHelper.cs" />
     <Compile Include="Model\ExecutionIoModel.cs" />
     <Compile Include="Model\FileModel.cs" />
     <Compile Include="Model\InterpreterModel.cs" />
+    <Compile Include="Helpers\LineEventArgs.cs" />
+    <Compile Include="Model\OutputAreaModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ViewModel\EditorTabViewModel.cs" />
     <Compile Include="ViewModel\ExecutionAreaViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\OutputAreaViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Compile Include="View\EditorTabView.xaml.cs">
       <DependentUpon>EditorTabView.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\ExecutionAreaView.xaml.cs">
       <DependentUpon>ExecutionAreaView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\OutputAreaView.xaml.cs">
+      <DependentUpon>OutputAreaView.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -116,6 +123,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="View\ExecutionAreaView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\OutputAreaView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

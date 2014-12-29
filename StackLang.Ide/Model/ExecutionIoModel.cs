@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Threading;
 using StackLang.Core.InputOutput;
+using StackLang.Ide.Helpers;
 
 namespace StackLang.Ide.Model {
 	public class ExecutionIoModel : IInputManager, IOutputManager {
-		public event EventHandler<LineEventArgs> LineWriteRequest;
+		public event EventHandler<LineEventArgs> WriteLineRequest;
+		public event EventHandler ClearRequest;
 		public event EventHandler AwaitingInput;
 
 		volatile bool isAwaitingInput;
@@ -18,9 +20,16 @@ namespace StackLang.Ide.Model {
 		}
 
 		public void WriteLine(string line) {
-			EventHandler<LineEventArgs> ev = LineWriteRequest;
+			EventHandler<LineEventArgs> ev = WriteLineRequest;
 			if (ev != null) {
 				ev(this, new LineEventArgs(line));
+			}
+		}
+
+		public void Clear() {
+			EventHandler handler = ClearRequest;
+			if (handler != null) {
+				handler(this, EventArgs.Empty);
 			}
 		}
 
@@ -43,14 +52,6 @@ namespace StackLang.Ide.Model {
 
 		public void Dispose() {
 			
-		}
-	}
-
-	public class LineEventArgs : EventArgs {
-		public readonly string Line;
-
-		public LineEventArgs(string newLine) {
-			Line = newLine;
 		}
 	}
 }

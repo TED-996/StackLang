@@ -1,11 +1,12 @@
 ﻿using System;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
+using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
 
 namespace StackLang.Ide.ViewModel {
 	public class ExecutionAreaViewModel : ViewModelBase {
-		readonly ExecutionIoModel model;
+		public readonly ExecutionIoModel Model;
 
 		string _outputText = "";
 		public string OutputText {
@@ -47,25 +48,34 @@ namespace StackLang.Ide.ViewModel {
 		public RelayCommand InputEnterCommand {
 			get {
 				return inputEnterCommand ?? (inputEnterCommand = new RelayCommand(() => {
-					model.ProvideInput(InputText);
+					Model.ProvideInput(InputText);
 					AwaitingInput = false;
 					InputText = "";
 				}));
 			}
 		}
 
-		public ExecutionAreaViewModel(ExecutionIoModel newModel) {
-			model = newModel;
-			model.AwaitingInput += OnModelAwaitingInput;
-			model.LineWriteRequest += OnModelLineWriteRequest;
+		public ExecutionAreaViewModel() {
+			Model = new ExecutionIoModel();
+			Model.AwaitingInput += OnModelAwaitingInput;
+			Model.WriteLineRequest += OnModelWriteLineRequest;
+			Model.ClearRequest += OnModelClearRequest;
 		}
 
-		void OnModelLineWriteRequest(object sender, LineEventArgs e) {
+		void OnModelWriteLineRequest(object sender, LineEventArgs e) {
 			OutputText += e.Line + '\n';
 		}
 
+		void OnModelClearRequest(object sender, EventArgs e) {
+			Clear();
+		}
+
+		void Clear() {
+			OutputText = "";
+		}
+
 		void OnModelAwaitingInput(object sender, EventArgs e) {
-			_awaitingInput = true;
+			AwaitingInput = true;
 		}
 	}
 }

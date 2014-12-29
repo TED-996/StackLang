@@ -3,13 +3,15 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
+using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
-using TestingMvvmLight.Helpers;
 
 namespace StackLang.Ide.ViewModel {
 	public class MainViewModel : ViewModelBase {
-		InterpreterModel interpreter;
-		DebuggerModel debugger;
+		readonly InterpreterModel interpreter;
+		readonly DebuggerModel debugger;
+		readonly ExecutionIoModel executionIoModel;
+		readonly OutputAreaModel outputAreaModel;
 
 		ObservableCollection<EditorTabViewModel> _editorTabViewModels = new ObservableCollection<EditorTabViewModel>();
 		public ObservableCollection<EditorTabViewModel> EditorTabViewModels {
@@ -31,6 +33,30 @@ namespace StackLang.Ide.ViewModel {
 					return;
 				}
 				_selectedTabViewModel = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		ExecutionAreaViewModel _executionAreaViewModel = new ExecutionAreaViewModel();
+		public ExecutionAreaViewModel ExecutionAreaViewModel {
+			get { return _executionAreaViewModel; }
+			set {
+				if (_executionAreaViewModel == value) {
+					return;
+				}
+				_executionAreaViewModel = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		OutputAreaViewModel _outputAreaViewModel = new OutputAreaViewModel();
+		public OutputAreaViewModel OutputAreaViewModel {
+			get { return _outputAreaViewModel; }
+			set {
+				if (_outputAreaViewModel == value) {
+					return;
+				}
+				_outputAreaViewModel = value;
 				RaisePropertyChanged();
 			}
 		}
@@ -82,10 +108,21 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
+		RelayCommand runCommand;
+		public RelayCommand RunCommand {
+			get {
+				return runCommand ?? (runCommand = new RelayCommand(Run,
+					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning));
+			}
+		}
+
 		public MainViewModel() {
 			EditorTabViewModels.CollectionChanged += OnEditorTabsCollectionChanged;
-
 			AddTab(new EditorTabViewModel());
+
+			executionIoModel = ExecutionAreaViewModel.Model;
+			interpreter = new InterpreterModel(OutputAreaViewModel.Model);
+			debugger = new DebuggerModel();
 		}
 
 		void AddTab(EditorTabViewModel viewModel) {
@@ -104,6 +141,15 @@ namespace StackLang.Ide.ViewModel {
 
 		void OnEditorTabRemove(object s, EventArgs e) {
 			EditorTabViewModels.Remove((EditorTabViewModel)s);
+		}
+
+		void Run() {
+			executionIoModel.Clear();
+
+			interpreter.InputManager = executionIoModel;
+			interpreter.OutputManager = executionIoModel;
+
+			interpreter.Run(SelectedTabViewModel.Text);
 		}
 	}
 }

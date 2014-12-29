@@ -10,9 +10,10 @@
              d:DataContext="{d:DesignInstance Type=viewModel:ExecutionAreaViewModel}">
 	<UserControl.Resources>
 		<helpers:BoolToBrushConverter x:Key="BorderBrushConverter" TrueBrush="Red" FalseBrush="Silver"/>
+		<helpers:BoolToBrushConverter x:Key="BackgroundBrushConverter" TrueBrush="LightCoral" FalseBrush="Silver"/>
 	</UserControl.Resources>
 	<DockPanel>
-		<Label Content="Execution Output"
+		<Label Content="Execution Window"
 			   Height="26"
 			   Background="Gray"
 			   DockPanel.Dock="Top"
@@ -21,9 +22,13 @@
 			<Label Content="Input:"
 				   Background="Gray"/>
 			<TextBox Height="26"
-					 Text="{Binding InputText}"
+					 Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
 					 BorderBrush="{Binding AwaitingInput, Converter={StaticResource BorderBrushConverter}}"
+					 Background="{Binding AwaitingInput, Converter={StaticResource BackgroundBrushConverter}}"
 					 IsEnabled="{Binding AwaitingInput}"
+					 helpers:FocusHelper.IsFocused="{Binding AwaitingInput}"
+					 Focusable="True"
+					 Name="InputTextBox"
 			         DockPanel.Dock="Left">
 				<TextBox.InputBindings>
 					<KeyBinding Key="Enter" Command="{Binding InputEnterCommand}" />
