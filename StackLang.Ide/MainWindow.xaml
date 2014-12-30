@@ -21,60 +21,63 @@
 	</Window.Resources>
 	<DockPanel>
 		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
+			<ToolBarTray.Resources>
+				<Style x:Key="{x:Static ToolBar.ButtonStyleKey}" TargetType="Button">
+					<Setter Property="Height" Value="28" />
+					<Style.Resources>
+						<Style TargetType="Image">
+							<Style.Triggers>
+								<Trigger Property="IsEnabled" Value="False">
+									<Setter Property="Opacity" Value="0.5" />
+								</Trigger>
+							</Style.Triggers>
+						</Style>
+					</Style.Resources>
+				</Style>
+			</ToolBarTray.Resources>
 			<ToolBar BandIndex="0">
 				<Button Command="{Binding NewTabCommand}"
 						ToolTip="New Tab (Ctrl+N)">
-					<Image Source="Images/new.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/new.png" />
 				</Button>
 				<Button Command="{Binding OpenFileCommand}"
 						ToolTip="Open (Ctrl+O)">
-					<Image Source="Images/open.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/open.png"/>
 				</Button>
 				<Button Command="{Binding SaveCommand}"
 						ToolTip="Save (Ctrl+S)">
-					<Image Source="Images/save.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/save.png"/>
 				</Button>
 				<Button Command="{Binding SaveAsCommand}"
 						ToolTip="Save As" >
-					<Image Source="Images/saveAs.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/saveAs.png"/>
 				</Button>
 				<Button Command="{Binding CloseCommand}"
 						ToolTip="Close Tab (Ctrl+W)" >
-					<Image Source="Images/close.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/close.png"/>
 				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="1">
 				<Button Command="{Binding RunCommand}"
 						ToolTip="Run (F9)">
-					<Image Source="Images/run.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/run.png"/>
 				</Button>
 				<Button ToolTip="Debug (F8)">
-					<Image Source="Images/debug.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/debug.png"/>
 				</Button>
 				<Button ToolTip="Abort">
-					<Image Source="Images/abort.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/abort.png"/>
 				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="2">
 				<Button ToolTip="Step (F11)">
-					<Image Source="Images/step.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/step.png"/>
 				</Button>
 				<Button ToolTip="Continue">
-					<Image Source="Images/continue.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/continue.png"/>
 				</Button>
 				<Button ToolTip="Pause">
-					<Image Source="Images/pause.png" 
-						   MaxWidth="22" MaxHeight="22"/>
+					<Image Source="Images/pause.png"/>
 				</Button>
 			</ToolBar>
 		</ToolBarTray>
@@ -113,6 +116,7 @@
 				<ContentControl Content="{Binding OutputAreaViewModel}" />
 			</Border>
 			<Border Grid.Column="1" Grid.Row="1" BorderBrush="Silver" BorderThickness="1">
+				<ContentControl Content="{Binding SettingsViewModel}" />
 			</Border>
 		</Grid>
 	</DockPanel>

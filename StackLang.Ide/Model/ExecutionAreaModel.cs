@@ -4,7 +4,7 @@ using StackLang.Core.InputOutput;
 using StackLang.Ide.Helpers;
 
 namespace StackLang.Ide.Model {
-	public class ExecutionIoModel : IInputManager, IOutputManager {
+	public class ExecutionAreaModel : IInputManager, IOutputManager {
 		public event EventHandler<LineEventArgs> WriteLineRequest;
 		public event EventHandler ClearRequest;
 		public event EventHandler AwaitingInput;

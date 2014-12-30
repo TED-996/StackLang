@@ -6,7 +6,7 @@ using StackLang.Ide.Model;
 
 namespace StackLang.Ide.ViewModel {
 	public class ExecutionAreaViewModel : ViewModelBase {
-		public readonly ExecutionIoModel Model;
+		public readonly ExecutionAreaModel Model;
 
 		string _outputText = "";
 		public string OutputText {
@@ -56,7 +56,7 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		public ExecutionAreaViewModel() {
-			Model = new ExecutionIoModel();
+			Model = new ExecutionAreaModel();
 			Model.AwaitingInput += OnModelAwaitingInput;
 			Model.WriteLineRequest += OnModelWriteLineRequest;
 			Model.ClearRequest += OnModelClearRequest;

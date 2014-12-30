@@ -14,7 +14,7 @@ namespace StackLang.Ide.Model {
 		readonly OutputAreaModel outputAreaModel;
 
 		public bool ExecutionRunning {
-			get { return executionThread != null && !executionThread.IsAlive; }
+			get { return executionThread != null && executionThread.IsAlive; }
 		}
 
 		ExecutionContext context;

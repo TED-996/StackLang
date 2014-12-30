@@ -10,7 +10,7 @@ namespace StackLang.Ide.ViewModel {
 	public class MainViewModel : ViewModelBase {
 		readonly InterpreterModel interpreter;
 		readonly DebuggerModel debugger;
-		readonly ExecutionIoModel executionIoModel;
+		readonly ExecutionAreaModel executionAreaModel;
 		readonly OutputAreaModel outputAreaModel;
 
 		ObservableCollection<EditorTabViewModel> _editorTabViewModels = new ObservableCollection<EditorTabViewModel>();
@@ -33,6 +33,9 @@ namespace StackLang.Ide.ViewModel {
 					return;
 				}
 				_selectedTabViewModel = value;
+
+				SettingsViewModel.IoModel = value == null ? null : value.IoSettingsModel;
+
 				RaisePropertyChanged();
 			}
 		}
@@ -61,6 +64,18 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
+		SettingsViewModel _settingsViewModel = new SettingsViewModel();
+		public SettingsViewModel SettingsViewModel {
+			get { return _settingsViewModel; }
+			set {
+				if (_settingsViewModel == value) {
+					return;
+				}
+				_settingsViewModel = value;
+				RaisePropertyChanged();
+			}
+		}
+
 		RelayCommand newTabCommand;
 		public RelayCommand NewTabCommand {
 			get {
@@ -72,12 +87,7 @@ namespace StackLang.Ide.ViewModel {
 		RelayCommand openFileCommand;
 		public RelayCommand OpenFileCommand {
 			get {
-				return openFileCommand ?? (openFileCommand = new RelayCommand(() => {
-					EditorTabViewModel newTab = EditorTabViewModel.Open();
-					if (newTab != null) {
-						AddTab(newTab);
-					}
-				}));
+				return openFileCommand ?? (openFileCommand = new RelayCommand(OpenTab));
 			}
 		}
 
@@ -85,21 +95,23 @@ namespace StackLang.Ide.ViewModel {
 		public RelayCommand SaveCommand {
 			get {
 				return saveCommand ?? (saveCommand = new RelayCommand(
-					() => SelectedTabViewModel.Save(),
+					() => SaveTab(false),
 					() => SelectedTabViewModel != null));
 			}
 		}
 
 		RelayCommand saveAsCommand;
+
 		public RelayCommand SaveAsCommand {
 			get {
 				return saveAsCommand ?? (saveAsCommand = new RelayCommand(
-					() => SelectedTabViewModel.Save(true),
+					() => SaveTab(true),
 					() => SelectedTabViewModel != null));
 			}
 		}
 
 		RelayCommand closeCommand;
+
 		public RelayCommand CloseCommand {
 			get {
 				return closeCommand ?? (closeCommand = new RelayCommand(
@@ -109,6 +121,7 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		RelayCommand runCommand;
+
 		public RelayCommand RunCommand {
 			get {
 				return runCommand ?? (runCommand = new RelayCommand(Run,
@@ -120,7 +133,8 @@ namespace StackLang.Ide.ViewModel {
 			EditorTabViewModels.CollectionChanged += OnEditorTabsCollectionChanged;
 			AddTab(new EditorTabViewModel());
 
-			executionIoModel = ExecutionAreaViewModel.Model;
+			executionAreaModel = ExecutionAreaViewModel.Model;
+			outputAreaModel = OutputAreaViewModel.Model;
 			interpreter = new InterpreterModel(OutputAreaViewModel.Model);
 			debugger = new DebuggerModel();
 		}
@@ -143,11 +157,40 @@ namespace StackLang.Ide.ViewModel {
 			EditorTabViewModels.Remove((EditorTabViewModel)s);
 		}
 
-		void Run() {
-			executionIoModel.Clear();
+		void OpenTab() {
+			EditorTabViewModel newTab;
+			try {
+				newTab = EditorTabViewModel.Open();
+			}
+			catch (FileException ex) {
+				outputAreaModel.WriteLine(ex.ToString());
+				return;
+			}
+			if (newTab != null) {
+				AddTab(newTab);
+			}
+		}
 
-			interpreter.InputManager = executionIoModel;
-			interpreter.OutputManager = executionIoModel;
+		void SaveTab(bool saveAs) {
+			try {
+				SelectedTabViewModel.Save(saveAs);
+			}
+			catch (FileException ex) {
+				outputAreaModel.WriteLine(ex.ToString());
+			}
+		}
+
+		void Run() {
+			executionAreaModel.Clear();
+
+			try {
+				interpreter.InputManager = SelectedTabViewModel.IoSettingsModel.GetInputManager(executionAreaModel);
+				interpreter.OutputManager = SelectedTabViewModel.IoSettingsModel.GetOutputManager(executionAreaModel);
+			}
+			catch (FileException ex) {
+				outputAreaModel.WriteLine(ex.ToString());
+				return;
+			}
 
 			interpreter.Run(SelectedTabViewModel.Text);
 		}

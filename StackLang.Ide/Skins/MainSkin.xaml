@@ -18,6 +18,10 @@
 		<view:OutputAreaView />
 	</DataTemplate>
 
+	<DataTemplate DataType="{x:Type viewModel:SettingsViewModel}">
+		<view:SettingsView />
+	</DataTemplate>
+
 	<DataTemplate x:Key="EditorTabHeaderTemplate">
 		<DockPanel d:DataContext="{d:DesignInstance Type=viewModel:EditorTabViewModel}">
 			<DockPanel.InputBindings>

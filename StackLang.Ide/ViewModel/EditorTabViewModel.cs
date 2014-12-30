@@ -1,17 +1,19 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Highlighting;
+using StackLang.Core.InputOutput;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
 
 namespace StackLang.Ide.ViewModel {
 	public sealed class EditorTabViewModel : ViewModelBase {
 		readonly FileModel fileModel;
+
+		public readonly IoSettingsModel IoSettingsModel;
 
 		public string Name {
 			get { return fileModel.DisplayName + (TextModified ? " *" : ""); }
@@ -76,8 +78,7 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		public EditorTabViewModel() {
-			fileModel = new FileModel();
+		public EditorTabViewModel() : this(new FileModel()) {
 			TextChanged += fileModel.OnEditorTabTextChanged;
 			fileModel.PropertyChanged += OnFileModelPropertyChanged;
 		}
@@ -89,11 +90,15 @@ namespace StackLang.Ide.ViewModel {
 
 			Text = fileModel.Text;
 			TextModified = false;
+
+			IoSettingsModel = new IoSettingsModel();
+			IoSettingsModel.CodeFileName = fileModel.Filename;
 		}
 
 		void OnFileModelPropertyChanged(object s, PropertyChangedEventArgs e) {
 			if (e.PropertyName == "Filename" || e.PropertyName == "DisplayName") {
 				RaisePropertyChanged("Name");
+				IoSettingsModel.CodeFileName = fileModel.Filename;
 			}
 		}
 
@@ -116,11 +121,11 @@ namespace StackLang.Ide.ViewModel {
 		public event EventHandler RequestRemove;
 		public void RaiseRequestRemove() {
 			if (TextModified) {
-				MessageBoxResult result = FileDialogHelpers.PromptSave(Name);
-				if (result == MessageBoxResult.Cancel) {
+				bool? result = FileDialogHelpers.PromptSave(Name);
+				if (result == null) {
 					return;
 				}
-				if (result == MessageBoxResult.Yes) {
+				if (result == true) {
 					Save();
 				}
 			}

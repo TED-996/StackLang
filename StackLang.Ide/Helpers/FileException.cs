@@ -15,7 +15,11 @@ namespace StackLang.Ide.Helpers {
 		}
 
 		public override string ToString() {
-			return string.Format("Error handling file {0}\nAdditional info:\n{1}", Filename, base.ToString());
+			if (InnerException != null) {
+				return string.Format("Error handling file {0} : {1}\nAdditional info: {2}",
+					Filename, Message, InnerException.Message);
+			}
+			return string.Format("Error handling file {0} : {1}", Filename, Message);
 		}
 	}
 }

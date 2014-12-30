@@ -34,6 +34,7 @@ namespace StackLang.Ide.Model {
 
 		public FileModel() {
 			Filename = null;
+			Text = "";
 		}
 
 		public FileModel(string newFilename, string newText) {
