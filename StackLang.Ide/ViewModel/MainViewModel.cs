@@ -129,14 +129,24 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
+		RelayCommand abortCommand;
+		public RelayCommand AbortCommand {
+			get {
+				return abortCommand ?? (abortCommand = new RelayCommand(Abort,
+					() => interpreter.ExecutionRunning));
+			}
+		}
+
 		public MainViewModel() {
 			EditorTabViewModels.CollectionChanged += OnEditorTabsCollectionChanged;
 			AddTab(new EditorTabViewModel());
 
 			executionAreaModel = ExecutionAreaViewModel.Model;
 			outputAreaModel = OutputAreaViewModel.Model;
-			interpreter = new InterpreterModel(OutputAreaViewModel.Model);
-			debugger = new DebuggerModel();
+			interpreter = new InterpreterModel(outputAreaModel);
+			debugger = new DebuggerModel(outputAreaModel);
+
+			AbortingExecution += ExecutionAreaViewModel.OnAbortingExecution;
 		}
 
 		void AddTab(EditorTabViewModel viewModel) {
@@ -193,6 +203,16 @@ namespace StackLang.Ide.ViewModel {
 			}
 
 			interpreter.Run(SelectedTabViewModel.Text);
+		}
+
+		EventHandler AbortingExecution;
+
+		void Abort() {
+			interpreter.Abort();
+			EventHandler handler = AbortingExecution;
+			if (handler != null) {
+				handler(this, EventArgs.Empty);
+			}
 		}
 	}
 }

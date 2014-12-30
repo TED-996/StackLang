@@ -47,13 +47,33 @@ namespace StackLang.Ide.Model {
 			try {
 				while (!context.ExecutionEnded) {
 					context.Tick();
+					Thread.Sleep(0);
 				}
+			}
+			catch (ThreadInterruptedException) {
+				executionThread = null;
+				return;
 			}
 			catch (CodeException ex) {
 				outputAreaModel.WriteLine(ex.ToString());
 			}
 			outputAreaModel.WriteLine("Execution ended.");
 			executionThread = null;
+		}
+
+		public void Abort() {
+			Thread thread = executionThread;
+			if (!ExecutionRunning) {
+				return;
+			}
+			thread.Interrupt();
+
+			if (!thread.Join(1000)) {
+				outputAreaModel.WriteLine("Aborting not successful.");
+			}
+			else {
+				outputAreaModel.WriteLine("Execution aborted.");
+			}
 		}
 	}
 }

@@ -77,5 +77,9 @@ namespace StackLang.Ide.ViewModel {
 		void OnModelAwaitingInput(object sender, EventArgs e) {
 			AwaitingInput = true;
 		}
+
+		public void OnAbortingExecution(object sender, EventArgs e) {
+			AwaitingInput = false;
+		}
 	}
 }

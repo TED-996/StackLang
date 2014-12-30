@@ -65,7 +65,8 @@
 				<Button ToolTip="Debug (F8)">
 					<Image Source="Images/debug.png"/>
 				</Button>
-				<Button ToolTip="Abort">
+				<Button Command="{Binding AbortCommand}"
+						ToolTip="Abort">
 					<Image Source="Images/abort.png"/>
 				</Button>
 			</ToolBar>
