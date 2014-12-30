@@ -57,6 +57,9 @@ namespace StackLang.Ide.Model {
 			catch (CodeException ex) {
 				outputAreaModel.WriteLine(ex.ToString());
 			}
+			finally {
+				context.Dispose();
+			}
 			outputAreaModel.WriteLine("Execution ended.");
 			executionThread = null;
 		}
