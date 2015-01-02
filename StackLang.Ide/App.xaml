@@ -11,7 +11,18 @@
         <!--Global View Model Locator-->
         <viewModel:ViewModelLocator x:Key="Locator"
 									d:IsDataSource="True" />
-		<Style TargetType="Button" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" x:Key="FlatButtonStyle"/>
+		<Style TargetType="Button" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" x:Key="FlatButtonStyle">
+			<Style.Resources>
+				<Style TargetType="Image">
+					<Style.Triggers>
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter Property="Opacity" Value="0.5" />
+						</Trigger>
+					</Style.Triggers>
+				</Style>
+			</Style.Resources>
+		</Style>
+	    <BitmapImage UriSource="Content/remove.png" x:Key="RemoveImageSource" />
 	</Application.Resources>
     
 </Application>

@@ -22,6 +22,10 @@
 		<view:SettingsView />
 	</DataTemplate>
 
+	<DataTemplate DataType="{x:Type viewModel:DebugAreaViewModel}">
+		<view:DebugAreaView />
+	</DataTemplate>
+
 	<DataTemplate x:Key="EditorTabHeaderTemplate">
 		<DockPanel d:DataContext="{d:DesignInstance Type=viewModel:EditorTabViewModel}">
 			<DockPanel.InputBindings>
@@ -38,7 +42,7 @@
 					HorizontalAlignment="Center"
 					DockPanel.Dock="Right">
 				<Button.Content>
-					<Image Source="../Images/remove.png" Height="10"/>
+					<Image Source="{StaticResource RemoveImageSource}" Height="10"/>
 				</Button.Content>
 			</Button>
 		</DockPanel>

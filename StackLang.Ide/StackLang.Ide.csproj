@@ -74,27 +74,35 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Helpers\BoolToBrushConverter.cs" />
+    <Compile Include="Helpers\AvalonTextBehavior.cs" />
+    <Compile Include="Helpers\Converters.cs" />
     <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\FileDialogHelpers.cs" />
     <Compile Include="Helpers\FileException.cs" />
     <Compile Include="Helpers\FocusHelper.cs" />
-    <Compile Include="Helpers\NullToBoolConverter.cs" />
+    <Compile Include="Helpers\InstructionHighlighter.cs" />
+    <Compile Include="Helpers\IntegerOrEmptyValidation.cs" />
+    <Compile Include="Helpers\SnapshotWrapper.cs" />
     <Compile Include="Helpers\TabContent.cs" />
     <Compile Include="Model\DebuggerModel.cs" />
     <Compile Include="Model\ExecutionAreaModel.cs" />
     <Compile Include="Model\FileModel.cs" />
     <Compile Include="Model\InterpreterModel.cs" />
-    <Compile Include="Helpers\LineEventArgs.cs" />
+    <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Model\OutputAreaModel.cs" />
     <Compile Include="Model\IoSettingsModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="ViewModel\DebugAreaViewModel.cs" />
     <Compile Include="ViewModel\EditorTabViewModel.cs" />
     <Compile Include="ViewModel\ExecutionAreaViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\OutputAreaViewModel.cs" />
     <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Compile Include="ViewModel\WatchViewModel.cs" />
+    <Compile Include="View\DebugAreaView.xaml.cs">
+      <DependentUpon>DebugAreaView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\EditorTabView.xaml.cs">
       <DependentUpon>EditorTabView.xaml</DependentUpon>
     </Compile>
@@ -106,6 +114,9 @@
     </Compile>
     <Compile Include="View\SettingsView.xaml.cs">
       <DependentUpon>SettingsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\WatchView.xaml.cs">
+      <DependentUpon>WatchView.xaml</DependentUpon>
     </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -119,9 +130,17 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Skins\DebugAreaSkin.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Skins\MainSkin.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\DebugAreaView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\EditorTabView.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -136,6 +155,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\SettingsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\WatchView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -175,20 +198,45 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\abort.png" />
-    <Resource Include="Images\add.png" />
-    <Resource Include="Images\close.png" />
-    <Resource Include="Images\continue.png" />
-    <Resource Include="Images\debug.png" />
-    <Resource Include="Images\new.png" />
-    <Resource Include="Images\open.png" />
-    <Resource Include="Images\pause.png" />
-    <Resource Include="Images\remove.png" />
-    <Resource Include="Images\run.png" />
-    <Resource Include="Images\save.png" />
-    <Resource Include="Images\saveAs.png" />
-    <Resource Include="Images\step.png" />
+    <Resource Include="Content\abort.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\close.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\continue.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\debug.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\open.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\run.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\save.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\saveAs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\step.png" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

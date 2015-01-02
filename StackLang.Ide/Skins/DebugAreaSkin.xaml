@@ -1,0 +1,20 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+					xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:viewModel="clr-namespace:StackLang.Ide.ViewModel"
+                    xmlns:view="clr-namespace:StackLang.Ide.View"
+                    mc:Ignorable="d">
+	<BitmapImage x:Key="RemoveImageSource" UriSource="..\Content\remove.png"/>
+	<Image x:Key="AddWatchImage"
+		   Source="..\Content\add.png" 
+		   MaxHeight="12" MaxWidth="12"/>
+	<Style x:Key="FlatButtonStyle"
+		   BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" 
+		   TargetType="Button" />
+
+	<DataTemplate DataType="{x:Type viewModel:WatchViewModel}">
+		<view:WatchView />
+	</DataTemplate>
+
+</ResourceDictionary>

@@ -34,7 +34,7 @@ namespace StackLang.Ide.ViewModel {
 				}
 				_selectedTabViewModel = value;
 
-				SettingsViewModel.IoModel = value == null ? null : value.IoSettingsModel;
+				SettingsViewModel.IoModel = (value == null ? null : value.IoSettingsModel);
 
 				RaisePropertyChanged();
 			}
@@ -72,6 +72,18 @@ namespace StackLang.Ide.ViewModel {
 					return;
 				}
 				_settingsViewModel = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		DebugAreaViewModel _debugAreaViewModel;
+		public DebugAreaViewModel DebugAreaViewModel {
+			get { return _debugAreaViewModel; }
+			set {
+				if (_debugAreaViewModel == value) {
+					return;
+				}
+				_debugAreaViewModel = value;
 				RaisePropertyChanged();
 			}
 		}
@@ -125,7 +137,7 @@ namespace StackLang.Ide.ViewModel {
 		public RelayCommand RunCommand {
 			get {
 				return runCommand ?? (runCommand = new RelayCommand(Run,
-					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning));
+					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning && !debugger.ExecutionRunning));
 			}
 		}
 
@@ -133,7 +145,23 @@ namespace StackLang.Ide.ViewModel {
 		public RelayCommand AbortCommand {
 			get {
 				return abortCommand ?? (abortCommand = new RelayCommand(Abort,
-					() => interpreter.ExecutionRunning));
+					() => interpreter.ExecutionRunning || debugger.ExecutionRunning));
+			}
+		}
+
+		RelayCommand debugCommand;
+		public RelayCommand DebugCommand {
+			get {
+				return debugCommand ?? (debugCommand = new RelayCommand(Debug, 
+					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning && !debugger.ExecutionRunning));
+			}
+		}
+
+		RelayCommand stepCommand;
+		public RelayCommand StepCommand {
+			get {
+				return stepCommand ?? (stepCommand = new RelayCommand(debugger.Step,
+					() => debugger.ExecutionRunning && !debugger.StepRunning));
 			}
 		}
 
@@ -146,7 +174,8 @@ namespace StackLang.Ide.ViewModel {
 			interpreter = new InterpreterModel(outputAreaModel);
 			debugger = new DebuggerModel(outputAreaModel);
 
-			AbortingExecution += ExecutionAreaViewModel.OnAbortingExecution;
+			debugger.DebugStart += OnDebugStart;
+			debugger.DebugEnd += OnDebugEnd;
 		}
 
 		void AddTab(EditorTabViewModel viewModel) {
@@ -205,13 +234,35 @@ namespace StackLang.Ide.ViewModel {
 			interpreter.Run(SelectedTabViewModel.Text);
 		}
 
-		EventHandler AbortingExecution;
+		void Debug() {
+			executionAreaModel.Clear();
+
+			try {
+				debugger.InputManager = SelectedTabViewModel.IoSettingsModel.GetInputManager(executionAreaModel);
+				debugger.OutputManager = SelectedTabViewModel.IoSettingsModel.GetOutputManager(executionAreaModel);
+			}
+			catch (FileException ex) {
+				outputAreaModel.WriteLine(ex.ToString());
+				return;
+			}
+
+			debugger.Start(SelectedTabViewModel);
+		}
+
+		void OnDebugStart(object sender, EventArgs e) {
+			DebugAreaViewModel = new DebugAreaViewModel(debugger);
+		}
+		
+		void OnDebugEnd(object sender, EventArgs e) {
+			DebugAreaViewModel = null;
+		}
 
 		void Abort() {
-			interpreter.Abort();
-			EventHandler handler = AbortingExecution;
-			if (handler != null) {
-				handler(this, EventArgs.Empty);
+			if (interpreter.ExecutionRunning) {
+				interpreter.Abort();
+			}
+			else if (debugger.ExecutionRunning) {
+				debugger.Abort();
 			}
 		}
 	}

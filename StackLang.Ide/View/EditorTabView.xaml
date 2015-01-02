@@ -7,14 +7,17 @@
 			 xmlns:avalon="clr-namespace:ICSharpCode.AvalonEdit;assembly=ICSharpCode.AvalonEdit"
 			 xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
 			 xmlns:command="http://www.galasoft.ch/mvvmlight"
+			 xmlns:helpers="clr-namespace:StackLang.Ide.Helpers"
 			 mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
              d:DataContext="{d:DesignInstance Type=viewModel:EditorTabViewModel}"
 			 >
 	<avalon:TextEditor
-			Document="{Binding Document}"
 			ShowLineNumbers="True"
 			SyntaxHighlighting="{Binding Highlighting}"
+			FontFamily="Consolas"
+			helpers:MvvmAvalonMakeover.LineTransformers="{Binding Transformers, Mode=TwoWay, 
+				UpdateSourceTrigger=PropertyChanged}"
 			DockPanel.Dock="Top"
 			>
 		<i:Interaction.Triggers>
@@ -22,5 +25,9 @@
 				<command:EventToCommand Command="{Binding TextChangedCommand, Mode=OneWay}" />
 			</i:EventTrigger>
 		</i:Interaction.Triggers>
+		<i:Interaction.Behaviors>
+			<helpers:AvalonEditBehavior
+				BindableText="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+		</i:Interaction.Behaviors>
 	</avalon:TextEditor>
 </UserControl>

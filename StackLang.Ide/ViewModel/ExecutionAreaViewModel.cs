@@ -47,19 +47,17 @@ namespace StackLang.Ide.ViewModel {
 		RelayCommand inputEnterCommand;
 		public RelayCommand InputEnterCommand {
 			get {
-				return inputEnterCommand ?? (inputEnterCommand = new RelayCommand(() => {
-					Model.ProvideInput(InputText);
-					AwaitingInput = false;
-					InputText = "";
-				}));
+				return inputEnterCommand ?? (inputEnterCommand = new RelayCommand(() => Model.ProvideInput(InputText)));
 			}
 		}
 
 		public ExecutionAreaViewModel() {
 			Model = new ExecutionAreaModel();
+
 			Model.AwaitingInput += OnModelAwaitingInput;
 			Model.WriteLineRequest += OnModelWriteLineRequest;
 			Model.ClearRequest += OnModelClearRequest;
+			Model.InputProvided += OnInputProvided;
 		}
 
 		void OnModelWriteLineRequest(object sender, LineEventArgs e) {
@@ -78,8 +76,9 @@ namespace StackLang.Ide.ViewModel {
 			AwaitingInput = true;
 		}
 
-		public void OnAbortingExecution(object sender, EventArgs e) {
+		public void OnInputProvided(object sender, EventArgs e) {
 			AwaitingInput = false;
+			InputText = "";
 		}
 	}
 }

@@ -7,7 +7,9 @@ namespace StackLang.Ide.Model {
 	public class ExecutionAreaModel : IInputManager, IOutputManager {
 		public event EventHandler<LineEventArgs> WriteLineRequest;
 		public event EventHandler ClearRequest;
+
 		public event EventHandler AwaitingInput;
+		public event EventHandler InputProvided;
 
 		volatile bool isAwaitingInput;
 		volatile string inputLine;
@@ -47,6 +49,11 @@ namespace StackLang.Ide.Model {
 			}
 
 			isAwaitingInput = false;
+			handler = InputProvided;
+			if (handler != null) {
+				handler(this, EventArgs.Empty);
+			}
+
 			return inputLine;
 		}
 

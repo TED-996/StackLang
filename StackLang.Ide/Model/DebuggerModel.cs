@@ -1,10 +1,12 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading.Tasks;
+using System.Windows;
 using StackLang.Core;
 using StackLang.Core.Collections;
 using StackLang.Core.Exceptions;
 using StackLang.Core.InputOutput;
 using StackLang.Ide.Helpers;
-using ExecutionContext = StackLang.Core.ExecutionContext;
+using StackLang.Ide.ViewModel;
 
 namespace StackLang.Ide.Model {
 	public class DebuggerModel {
@@ -13,22 +15,33 @@ namespace StackLang.Ide.Model {
 
 		readonly OutputAreaModel outputAreaModel;
 
-		public bool ExecutionRunning {
-			get { return executionThread != null && executionThread.IsAlive; }
+		public bool ExecutionRunning { get; private set; }
+		public bool StepRunning {
+			get {
+				return stepTask != null &&
+					(stepTask.Status == TaskStatus.Running || stepTask.Status == TaskStatus.WaitingToRun ||
+					   stepTask.Status == TaskStatus.WaitingForActivation);
+			}
 		}
 
+		volatile bool aborted;
+
+		public SnapshotWrapper Snapshot { get; private set; }
+
 		ExecutionContext context;
-		Thread executionThread;
+		Task stepTask;
+
+		readonly object executionDisposeLock = new object();
 
 		public DebuggerModel(OutputAreaModel newOutputAreaModel) {
 			outputAreaModel = newOutputAreaModel;
 		}
 
-		public void Run(string code) {
+		public void Start(EditorTabViewModel tabViewModel) {
 			outputAreaModel.Clear();
 			outputAreaModel.WriteLine("Building...");
 
-			Parser parser = new Parser(code.ToMemoryStream());
+			Parser parser = new Parser(tabViewModel.Text.ToMemoryStream());
 			try {
 				InstructionLineCollection collection = parser.Parse();
 				context = new ExecutionContext(collection, InputManager, OutputManager);
@@ -37,23 +50,107 @@ namespace StackLang.Ide.Model {
 				outputAreaModel.WriteLine(exception.ToString());
 				return;
 			}
-			
-			executionThread = new Thread(InterpreterThreadStart) {IsBackground = true};
-			executionThread.Start();
+
+			DebugStart += tabViewModel.OnDebugStart;
+
+			outputAreaModel.WriteLine("Debug started.");
+			ExecutionRunning = true;
+			aborted = false;
+			RaiseDebugStart();
+
+			Snapshot = new SnapshotWrapper(context.Parameters.GetSnapshot());
+			RaiseNewSnapshot();
 		}
 
-		void InterpreterThreadStart() {
-			outputAreaModel.WriteLine("Execution started.");
+		public void Step() {
+			stepTask = new Task(Tick);
+			stepTask.Start();
+		}
+
+		void Tick() {
+			if (!ExecutionRunning) {
+				throw new ApplicationException("Step called with execution stopped.");
+			}
 			try {
-				while (!context.ExecutionEnded) {
-					context.Tick();
-				}
+				context.Tick();
 			}
 			catch (CodeException ex) {
 				outputAreaModel.WriteLine(ex.ToString());
+				OnExecutionEnd();
 			}
-			outputAreaModel.WriteLine("Execution ended.");
-			executionThread = null;
+
+			if (aborted) {
+				return;
+			}
+
+			if (context.ExecutionEnded) {
+				OnExecutionEnd();
+				outputAreaModel.WriteLine("Debug ended.");
+			}
+			else {
+				Application.Current.Dispatcher.Invoke(() => {
+					Snapshot = new SnapshotWrapper(context.Parameters.GetSnapshot());
+					RaiseNewSnapshot();
+				});
+			}
+		}
+
+		void OnExecutionEnd() {
+			ExecutionRunning = false;
+			lock (executionDisposeLock) {
+				if (context != null) {
+					context.Dispose();
+					context = null;
+					Application.Current.Dispatcher.Invoke(RaiseDebugEnd);
+				}
+			}
+		}
+
+		public void Abort() {
+			Task.Run(() => {
+				if (StepRunning) {
+					Cancel();
+					if (!stepTask.Wait(2000)) {
+						outputAreaModel.WriteLine("Debug abort failed.");
+						return;
+					}
+				}
+				OnExecutionEnd();
+				outputAreaModel.WriteLine("Debug aborted.");
+			});
+		}
+
+		void Cancel() {
+			aborted = true;
+			ExecutionAreaModel executionAreaModel = OutputManager as ExecutionAreaModel;
+			if (executionAreaModel != null) {
+				executionAreaModel.ProvideInput("0");
+			}
+			//Else wait.
+		}
+
+		public event EventHandler<NewSnapshotEventArgs> NewSnapshot;
+		void RaiseNewSnapshot() {
+			EventHandler<NewSnapshotEventArgs> handler = NewSnapshot;
+			if (handler != null) {
+				handler(this, new NewSnapshotEventArgs(Snapshot));
+			}
+		}
+
+		public event EventHandler DebugStart;
+		void RaiseDebugStart() {
+			EventHandler handler = DebugStart;
+			if (handler != null) {
+				handler(this, EventArgs.Empty);
+			}
+		}
+
+		public event EventHandler DebugEnd;
+		void RaiseDebugEnd() {
+			EventHandler handler = DebugEnd;
+			if (handler != null) {
+				handler(this, EventArgs.Empty);
+			}
 		}
 	}
 }

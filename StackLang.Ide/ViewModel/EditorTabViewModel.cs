@@ -1,11 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
-using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Highlighting;
-using StackLang.Core.InputOutput;
+using ICSharpCode.AvalonEdit.Rendering;
+using StackLang.Core;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
 
@@ -14,6 +17,9 @@ namespace StackLang.Ide.ViewModel {
 		readonly FileModel fileModel;
 
 		public readonly IoSettingsModel IoSettingsModel;
+
+		readonly ObservableCollection<int> breakpoints;
+		readonly InstructionHighlighter highlighter;
 
 		public string Name {
 			get { return fileModel.DisplayName + (TextModified ? " *" : ""); }
@@ -32,21 +38,17 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		TextDocument _document = new TextDocument();
-		public TextDocument Document {
-			get { return _document; }
+		string text = "";
+		public string Text {
+			get { return text; }
 			set {
-				if (_document == value) {
+				Debug.WriteLine("Text changed: value: " + value);
+				if (text == value) {
 					return;
 				}
-				_document = value;
+				text = value;
 				RaisePropertyChanged();
 			}
-		}
-
-		public string Text {
-			get { return Document.Text; }
-			set { Document.Text = value; }
 		}
 
 		IHighlightingDefinition _highlighting = HighlightingManager.Instance.HighlightingDefinitions.First(
@@ -58,6 +60,18 @@ namespace StackLang.Ide.ViewModel {
 					return;
 				}
 				_highlighting = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		List<DocumentColorizingTransformer> _transformers;
+		public List<DocumentColorizingTransformer> Transformers {
+			get { return _transformers; }
+			set {
+				if (_transformers == value) {
+					return;
+				}
+				_transformers = value;
 				RaisePropertyChanged();
 			}
 		}
@@ -91,8 +105,14 @@ namespace StackLang.Ide.ViewModel {
 			Text = fileModel.Text;
 			TextModified = false;
 
-			IoSettingsModel = new IoSettingsModel();
-			IoSettingsModel.CodeFileName = fileModel.Filename;
+			IoSettingsModel = new IoSettingsModel {CodeFileName = fileModel.Filename};
+
+			highlighter = new InstructionHighlighter();
+			breakpoints = new ObservableCollection<int>();
+			Transformers = new List<DocumentColorizingTransformer> {
+				new BreakpointHighlighter(breakpoints),
+				highlighter
+			};
 		}
 
 		void OnFileModelPropertyChanged(object s, PropertyChangedEventArgs e) {
@@ -116,6 +136,34 @@ namespace StackLang.Ide.ViewModel {
 
 			TextModified = false;
 			return true;
+		}
+
+		public void OnDebugStart(object sender, EventArgs e) {
+			DebuggerModel debuggerModel = (DebuggerModel) sender;
+			debuggerModel.DebugStart -= OnDebugStart;
+			debuggerModel.NewSnapshot += OnNewSnapshot;
+			debuggerModel.DebugEnd += OnDebugEnd;
+		}
+
+		public void OnNewSnapshot(object sender, NewSnapshotEventArgs e) {
+			SnapshotWrapper snapshot = e.SnapshotWrapper;
+			highlighter.Enabled = true;
+			highlighter.Line = snapshot.CurrentLine + 1;
+			highlighter.Instruction = snapshot.CurrentInstruction;
+			highlighter.DimHighlight = snapshot.CurrentExecutionSource == ExecutionParameters.ExecutionSource.Stack;
+
+			highlighter.RequestRedraw();
+		}
+
+		public void OnDebugEnd(object sender, EventArgs e) {
+			highlighter.Enabled = false;
+
+			highlighter.RequestRedraw();
+
+			DebuggerModel debuggerModel = (DebuggerModel)sender;
+			debuggerModel.NewSnapshot -= OnNewSnapshot;
+			debuggerModel.DebugEnd -= OnDebugEnd;
+
 		}
 
 		public event EventHandler RequestRemove;
@@ -154,14 +202,6 @@ namespace StackLang.Ide.ViewModel {
 				return null;
 			}
 			return new EditorTabViewModel(FileModel.LoadFromFile(filename));
-		}
-	}
-
-	public class TextChangedEventArgs : EventArgs {
-		public readonly string Text;
-
-		public TextChangedEventArgs(string newText) {
-			Text = newText;
 		}
 	}
 }

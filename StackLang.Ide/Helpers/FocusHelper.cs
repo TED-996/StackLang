@@ -13,7 +13,6 @@ namespace StackLang.Ide.Helpers {
 		public static readonly DependencyProperty IsFocusedProperty = DependencyProperty.RegisterAttached("IsFocused",
 			typeof(bool), typeof(FocusHelper), new UIPropertyMetadata(false, OnIsFocusedPropertyChanged));
 
-
 		static void OnIsFocusedPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			var uie = (UIElement)d;
 			if ((bool)e.NewValue) {

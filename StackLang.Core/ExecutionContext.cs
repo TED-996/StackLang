@@ -71,6 +71,11 @@ namespace StackLang.Core {
 			}
 
 			Parameters.TickEnd();
+
+			if (Parameters.CurrentExecutionSource == ExecutionParameters.ExecutionSource.Code &&
+				Parameters.CurrentLine >= InstructionCollection.Count) {
+				ExecutionEnded = true;
+			}
 		}
 
 		public void Dispose() {

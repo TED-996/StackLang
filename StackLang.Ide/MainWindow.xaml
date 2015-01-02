@@ -17,68 +17,64 @@
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceDictionary Source="Skins/MainSkin.xaml" />
 			</ResourceDictionary.MergedDictionaries>
+			<helpers:NullToGridLengthConverter x:Key="NullToGridLengthConverter" />
+			<helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
 		</ResourceDictionary>
 	</Window.Resources>
 	<DockPanel>
 		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
 			<ToolBarTray.Resources>
-				<Style x:Key="{x:Static ToolBar.ButtonStyleKey}" TargetType="Button">
+				<Style x:Key="{x:Static ToolBar.ButtonStyleKey}" TargetType="Button"
+					   BasedOn="{StaticResource FlatButtonStyle}">
 					<Setter Property="Height" Value="28" />
-					<Style.Resources>
-						<Style TargetType="Image">
-							<Style.Triggers>
-								<Trigger Property="IsEnabled" Value="False">
-									<Setter Property="Opacity" Value="0.5" />
-								</Trigger>
-							</Style.Triggers>
-						</Style>
-					</Style.Resources>
 				</Style>
 			</ToolBarTray.Resources>
 			<ToolBar BandIndex="0">
 				<Button Command="{Binding NewTabCommand}"
 						ToolTip="New Tab (Ctrl+N)">
-					<Image Source="Images/new.png" />
+					<Image Source="Content\new.png" />
 				</Button>
 				<Button Command="{Binding OpenFileCommand}"
 						ToolTip="Open (Ctrl+O)">
-					<Image Source="Images/open.png"/>
+					<Image Source="Content\open.png"/>
 				</Button>
 				<Button Command="{Binding SaveCommand}"
 						ToolTip="Save (Ctrl+S)">
-					<Image Source="Images/save.png"/>
+					<Image Source="Content\save.png"/>
 				</Button>
 				<Button Command="{Binding SaveAsCommand}"
 						ToolTip="Save As" >
-					<Image Source="Images/saveAs.png"/>
+					<Image Source="Content\saveAs.png"/>
 				</Button>
 				<Button Command="{Binding CloseCommand}"
 						ToolTip="Close Tab (Ctrl+W)" >
-					<Image Source="Images/close.png"/>
+					<Image Source="Content\close.png"/>
 				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="1">
 				<Button Command="{Binding RunCommand}"
 						ToolTip="Run (F9)">
-					<Image Source="Images/run.png"/>
+					<Image Source="Content\run.png"/>
 				</Button>
-				<Button ToolTip="Debug (F8)">
-					<Image Source="Images/debug.png"/>
+				<Button Command="{Binding DebugCommand}"
+						ToolTip="Debug (F8)">
+					<Image Source="Content\debug.png"/>
 				</Button>
 				<Button Command="{Binding AbortCommand}"
 						ToolTip="Abort">
-					<Image Source="Images/abort.png"/>
+					<Image Source="Content\abort.png"/>
 				</Button>
 			</ToolBar>
 			<ToolBar BandIndex="2">
-				<Button ToolTip="Step (F11)">
-					<Image Source="Images/step.png"/>
+				<Button Command="{Binding StepCommand}"
+						ToolTip="Step (F11)">
+					<Image Source="Content\step.png"/>
 				</Button>
 				<Button ToolTip="Continue">
-					<Image Source="Images/continue.png"/>
+					<Image Source="Content\continue.png"/>
 				</Button>
 				<Button ToolTip="Pause">
-					<Image Source="Images/pause.png"/>
+					<Image Source="Content\pause.png"/>
 				</Button>
 			</ToolBar>
 		</ToolBarTray>
@@ -96,7 +92,8 @@
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="3*"/>
-						<ColumnDefinition Width="0" />
+						<ColumnDefinition Width="{Binding DebugAreaViewModel,
+							Converter={StaticResource NullToGridLengthConverter}}" />
 					</Grid.ColumnDefinitions>
 					<TabControl IsSynchronizedWithCurrentItem="True" 
 								ItemsSource="{Binding EditorTabViewModels}"
@@ -105,9 +102,13 @@
 								helpers:TabContent.IsCached="True"
 								Grid.Row="0">
 					</TabControl>
-					<GridSplitter Grid.Column="1" Width="5" VerticalAlignment="Stretch" HorizontalAlignment="Left" 
-								  Visibility="Collapsed"/>
-					<Border Margin="5,0,0,0" Grid.Column="1"/>
+					<GridSplitter Grid.Column="1" Width="5"
+								  VerticalAlignment="Stretch" 
+								  Visibility="{Binding DebugAreaViewModel,
+									Converter={StaticResource NullToVisibilityConverter}}"/>
+					<Border Margin="5,0,0,0" Grid.Column="1">
+						<ContentControl Content="{Binding DebugAreaViewModel}" />
+					</Border>
 				</Grid>
 			</Border>
 			<Border Grid.Column="1" Grid.Row="0" BorderBrush="Silver" BorderThickness="1">
