@@ -1,11 +1,11 @@
 ﻿using System;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public class ExecutionAreaViewModel : ViewModelBase {
+	public class ExecutionAreaViewModel : ViewModelBaseEnhanced {
 		public readonly ExecutionAreaModel Model;
 
 		string _outputText = "";
@@ -44,11 +44,8 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		RelayCommand inputEnterCommand;
 		public RelayCommand InputEnterCommand {
-			get {
-				return inputEnterCommand ?? (inputEnterCommand = new RelayCommand(() => Model.ProvideInput(InputText)));
-			}
+			get { return GetRelayCommand(() => Model.ProvideInput(InputText)); }
 		}
 
 		public ExecutionAreaViewModel() {

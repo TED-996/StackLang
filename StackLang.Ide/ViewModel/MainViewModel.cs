@@ -4,15 +4,15 @@ using System.Collections.Specialized;
 using System.IO;
 using System.Reflection;
 using System.Xml;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public class MainViewModel : ViewModelBase {
+	public class MainViewModel : ViewModelBaseEnhanced {
 		readonly InterpreterModel interpreter;
 		readonly DebuggerModel debugger;
 		readonly ExecutionAreaModel executionAreaModel;
@@ -95,97 +95,53 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		RelayCommand newTabCommand;
 		public RelayCommand NewTabCommand {
-			get {
-				return newTabCommand ?? (newTabCommand = new RelayCommand(() =>
-					AddTab(new EditorTabViewModel(stackLangSyntaxDefinition))));
-			}
+			get { return GetRelayCommand(() => AddTab(new EditorTabViewModel(stackLangSyntaxDefinition))); }
 		}
-
-		RelayCommand openFileCommand;
 		public RelayCommand OpenFileCommand {
-			get {
-				return openFileCommand ?? (openFileCommand = new RelayCommand(OpenTab));
-			}
+			get { return GetRelayCommand(OpenTab); }
 		}
-
-		RelayCommand saveCommand;
 		public RelayCommand SaveCommand {
-			get {
-				return saveCommand ?? (saveCommand = new RelayCommand(
-					() => SaveTab(false),
-					() => SelectedTabViewModel != null));
-			}
+			get { return GetRelayCommand(() => SaveTab(false), () => SelectedTabViewModel != null); }
 		}
-
-		RelayCommand saveAsCommand;
-
 		public RelayCommand SaveAsCommand {
-			get {
-				return saveAsCommand ?? (saveAsCommand = new RelayCommand(
-					() => SaveTab(true),
-					() => SelectedTabViewModel != null));
-			}
+			get { return GetRelayCommand(() => SaveTab(true), () => SelectedTabViewModel != null); }
 		}
-
-		RelayCommand closeCommand;
-
 		public RelayCommand CloseCommand {
 			get {
-				return closeCommand ?? (closeCommand = new RelayCommand(
-					() => SelectedTabViewModel.RaiseRequestRemove(),
-					() => SelectedTabViewModel != null));
+				return GetRelayCommand(() => SelectedTabViewModel.RaiseRequestRemove(),
+				() => SelectedTabViewModel != null);
 			}
 		}
-
-		RelayCommand runCommand;
-
 		public RelayCommand RunCommand {
 			get {
-				return runCommand ?? (runCommand = new RelayCommand(Run,
-					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning && !debugger.ExecutionRunning));
+				return GetRelayCommand(Run,
+					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning && !debugger.ExecutionRunning);
 			}
 		}
-
-		RelayCommand abortCommand;
 		public RelayCommand AbortCommand {
-			get {
-				return abortCommand ?? (abortCommand = new RelayCommand(Abort,
-					() => interpreter.ExecutionRunning || debugger.ExecutionRunning));
-			}
+			get { return GetRelayCommand(Abort, () => interpreter.ExecutionRunning || debugger.ExecutionRunning); }
 		}
-
-		RelayCommand debugCommand;
 		public RelayCommand DebugCommand {
 			get {
-				return debugCommand ?? (debugCommand = new RelayCommand(Debug, 
-					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning && !debugger.ExecutionRunning));
+				return GetRelayCommand(Debug,
+					() => SelectedTabViewModel != null && !interpreter.ExecutionRunning && !debugger.ExecutionRunning);
 			}
 		}
-
-		RelayCommand stepCommand;
 		public RelayCommand StepCommand {
 			get {
-				return stepCommand ?? (stepCommand = new RelayCommand(debugger.Step,
-					() => debugger.ExecutionRunning && !debugger.StepRunning && !debugger.InContinue));
+				return GetRelayCommand(debugger.Step,
+					() => debugger.ExecutionRunning && !debugger.StepRunning && !debugger.InContinue);
 			}
 		}
-
-		RelayCommand continueCommand;
 		public RelayCommand ContinueCommand {
 			get {
-				return continueCommand ?? (continueCommand = new RelayCommand(debugger.Continue, 
-					() => debugger.ExecutionRunning && !debugger.StepRunning && !debugger.InContinue));
+				return GetRelayCommand(debugger.Continue,
+					() => debugger.ExecutionRunning && !debugger.StepRunning && !debugger.InContinue);
 			}
 		}
-
-		RelayCommand pauseCommand;
 		public RelayCommand PauseCommand {
-			get {
-				return pauseCommand ?? (pauseCommand = new RelayCommand(debugger.Pause,
-					() => debugger.InContinue));
-			}
+			get { return GetRelayCommand(debugger.Pause, () => debugger.InContinue); }
 		}
 
 		public MainViewModel() {
@@ -224,7 +180,7 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		void OnEditorTabRemove(object s, EventArgs e) {
-			EditorTabViewModel viewModel = (EditorTabViewModel) s;
+			EditorTabViewModel viewModel = (EditorTabViewModel)s;
 			if (viewModel.InDebug) {
 				debugger.Abort();
 				outputAreaModel.WriteLine("Cannot close the tab currently debugged.");
@@ -291,7 +247,7 @@ namespace StackLang.Ide.ViewModel {
 		void OnDebugStart(object sender, EventArgs e) {
 			DebugAreaViewModel = new DebugAreaViewModel(debugger);
 		}
-		
+
 		void OnDebugEnd(object sender, EventArgs e) {
 			DebugAreaViewModel = null;
 		}

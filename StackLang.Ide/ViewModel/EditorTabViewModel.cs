@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Rendering;
 using StackLang.Core;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public sealed class EditorTabViewModel : ViewModelBase {
+	public sealed class EditorTabViewModel : ViewModelBaseEnhanced {
 		readonly FileModel fileModel;
 
 		public readonly IoSettingsModel IoSettingsModel;
@@ -109,37 +109,21 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		RelayCommand textChangedCommand;
 		public RelayCommand TextChangedCommand {
-			get {
-				return textChangedCommand
-				       ?? (textChangedCommand = new RelayCommand(OnTextChanged));
-			}
+			get { return GetRelayCommand(OnTextChanged); }
 		}
-
-		RelayCommand removeCommand;
 		public RelayCommand RemoveCommand {
 			get {
-				return removeCommand
-				       ?? (removeCommand = new RelayCommand(RaiseRequestRemove));
+				return GetRelayCommand(RaiseRequestRemove);
 			}
 		}
-
-		RelayCommand toggleBreakpointCommand;
 		public RelayCommand ToggleBreakpointCommand {
 			get {
-				return toggleBreakpointCommand ?? (toggleBreakpointCommand = new RelayCommand(ToggleBreakpoint,
-					() => BreakpointsVisible && !string.IsNullOrEmpty(BreakpointText)));
+				return GetRelayCommand(ToggleBreakpoint, () => BreakpointsVisible && !string.IsNullOrEmpty(BreakpointText));
 			}
 		}
-
-		RelayCommand toggleBreakpointsVisibleCommand;
 		public RelayCommand ToggleBreakpointsVisibleCommand {
-			get {
-				return toggleBreakpointsVisibleCommand ?? (toggleBreakpointsVisibleCommand = new RelayCommand(() => {
-					BreakpointsVisible = !BreakpointsVisible;
-				}));
-			}
+			get { return GetRelayCommand(() => { BreakpointsVisible = !BreakpointsVisible; }); }
 		}
 
 		public EditorTabViewModel(IHighlightingDefinition newSyntaxDefinition) : this(newSyntaxDefinition, new FileModel()) {

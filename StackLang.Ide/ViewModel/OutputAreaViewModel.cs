@@ -1,11 +1,11 @@
 ﻿using System;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public class OutputAreaViewModel : ViewModelBase {
+	public class OutputAreaViewModel : ViewModelBaseEnhanced {
 		public readonly OutputAreaModel Model;
 
 		string _text = "";
@@ -20,11 +20,8 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		RelayCommand clearCommand;
 		public RelayCommand ClearCommand {
-			get {
-				return clearCommand ?? (clearCommand = new RelayCommand(Clear));
-			}
+			get { return GetRelayCommand(Clear); }
 		}
 
 		public OutputAreaViewModel() {

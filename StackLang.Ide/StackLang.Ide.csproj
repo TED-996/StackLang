@@ -91,6 +91,7 @@
     <Compile Include="Helpers\EventArgs.cs" />
     <Compile Include="Model\OutputAreaModel.cs" />
     <Compile Include="Model\IoSettingsModel.cs" />
+    <Compile Include="MVVMEnhancements\ViewModelBaseEnhanced.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="ViewModel\DebugAreaViewModel.cs" />
     <Compile Include="ViewModel\EditorTabViewModel.cs" />

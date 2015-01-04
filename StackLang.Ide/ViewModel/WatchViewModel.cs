@@ -1,11 +1,11 @@
 ﻿using System;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using StackLang.Core;
 using StackLang.Ide.Helpers;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public class WatchViewModel : ViewModelBase {
+	public class WatchViewModel : ViewModelBaseEnhanced {
 		public readonly WatchType Type;
 		public readonly int WatchAddress;
 
@@ -50,11 +50,8 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		RelayCommand removeCommand;
 		public RelayCommand RemoveCommand {
-			get {
-				return removeCommand ?? (removeCommand = new RelayCommand(RaiseRequestRemove));
-			}
+			get { return GetRelayCommand(RaiseRequestRemove); }
 		}
 
 		public WatchViewModel(WatchType newType, int newAddress = 0, SnapshotWrapper snapshot = null) {

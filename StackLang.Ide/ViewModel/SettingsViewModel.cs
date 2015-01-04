@@ -1,10 +1,10 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.CommandWpf;
+﻿using GalaSoft.MvvmLight.CommandWpf;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public class SettingsViewModel : ViewModelBase {
+	public class SettingsViewModel : ViewModelBaseEnhanced {
 		IoSettingsModel _ioModel;
 		public IoSettingsModel IoModel {
 			get { return _ioModel; }

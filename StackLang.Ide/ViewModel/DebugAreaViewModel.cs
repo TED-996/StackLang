@@ -2,13 +2,13 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
+using StackLang.Ide.MVVMEnhancements;
 
 namespace StackLang.Ide.ViewModel {
-	public sealed class DebugAreaViewModel : ViewModelBase, IDisposable {
+	public sealed class DebugAreaViewModel : ViewModelBaseEnhanced, IDisposable {
 		readonly DebuggerModel model;
 
 		SnapshotWrapper snapshot;
@@ -59,11 +59,9 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		RelayCommand newWatchCommand;
 		public RelayCommand NewWatchCommand {
 			get {
-				return newWatchCommand ?? (newWatchCommand = new RelayCommand(OnNewWatch, 
-					() => !string.IsNullOrWhiteSpace(NewWatchText)));
+				return GetRelayCommand(OnNewWatch, () => !string.IsNullOrWhiteSpace(NewWatchText));
 			}
 		}
 
