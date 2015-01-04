@@ -17,4 +17,8 @@
 		<view:WatchView />
 	</DataTemplate>
 
+	<DataTemplate DataType="{x:Type viewModel:StackItemViewModel}">
+		<view:StackItemView />
+	</DataTemplate>
+
 </ResourceDictionary>

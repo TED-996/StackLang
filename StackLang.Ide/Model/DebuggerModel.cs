@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using StackLang.Core;
@@ -13,23 +14,28 @@ namespace StackLang.Ide.Model {
 		public IInputManager InputManager { get; set; }
 		public IOutputManager OutputManager { get; set; }
 
+		public IList<int> Breakpoints { get; set; } 
+
 		readonly OutputAreaModel outputAreaModel;
 
 		public bool ExecutionRunning { get; private set; }
 		public bool StepRunning {
 			get {
-				return stepTask != null &&
-					(stepTask.Status == TaskStatus.Running || stepTask.Status == TaskStatus.WaitingToRun ||
-					   stepTask.Status == TaskStatus.WaitingForActivation);
+				return runTask != null &&
+					(runTask.Status == TaskStatus.Running || runTask.Status == TaskStatus.WaitingToRun ||
+					   runTask.Status == TaskStatus.WaitingForActivation);
 			}
 		}
 
 		volatile bool aborted;
+		volatile bool paused;
+
+		public bool InContinue { get; private set; }
 
 		public SnapshotWrapper Snapshot { get; private set; }
 
 		ExecutionContext context;
-		Task stepTask;
+		Task runTask;
 
 		readonly object executionDisposeLock = new object();
 
@@ -63,8 +69,8 @@ namespace StackLang.Ide.Model {
 		}
 
 		public void Step() {
-			stepTask = new Task(Tick);
-			stepTask.Start();
+			runTask = new Task(Tick);
+			runTask.Start();
 		}
 
 		void Tick() {
@@ -95,6 +101,53 @@ namespace StackLang.Ide.Model {
 			}
 		}
 
+		public void Continue() {
+			paused = false;
+			InContinue = true;
+
+			runTask = new Task(() => {
+				if (!ExecutionRunning) {
+					throw new ApplicationException("Step called with execution stopped.");
+				}
+				try {
+					while (!context.ExecutionEnded && !paused && !aborted) {
+						context.Tick();
+						if (Breakpoints.Contains(context.Parameters.CurrentLine + 1)
+						    && context.Parameters.CurrentInstruction == 0) {
+							outputAreaModel.WriteLine("Breakpoint hit.");
+							break;
+						}
+					}
+				}
+				catch (CodeException ex) {
+					outputAreaModel.WriteLine(ex.ToString());
+					OnExecutionEnd();
+				}
+
+				if (aborted) {
+					return;
+				}
+
+				if (ExecutionRunning && paused) {
+					outputAreaModel.WriteLine("Debug paused.");
+				}
+
+				if (context.ExecutionEnded) {
+					OnExecutionEnd();
+					outputAreaModel.WriteLine("Debug ended.");
+				}
+				else {
+					Application.Current.Dispatcher.Invoke(() => {
+						Snapshot = new SnapshotWrapper(context.Parameters.GetSnapshot());
+						RaiseNewSnapshot();
+					});
+				}
+
+				InContinue = false;
+			});
+			runTask.Start();
+		}
+
 		void OnExecutionEnd() {
 			ExecutionRunning = false;
 			lock (executionDisposeLock) {
@@ -110,7 +163,7 @@ namespace StackLang.Ide.Model {
 			Task.Run(() => {
 				if (StepRunning) {
 					Cancel();
-					if (!stepTask.Wait(2000)) {
+					if (!runTask.Wait(2000)) {
 						outputAreaModel.WriteLine("Debug abort failed.");
 						return;
 					}
@@ -123,10 +176,15 @@ namespace StackLang.Ide.Model {
 		void Cancel() {
 			aborted = true;
 			ExecutionAreaModel executionAreaModel = OutputManager as ExecutionAreaModel;
-			if (executionAreaModel != null) {
+			if (executionAreaModel != null && executionAreaModel.IsAwaitingInput) {
 				executionAreaModel.ProvideInput("0");
 			}
 			//Else wait.
+		}
+
+		public void Pause() {
+			paused = true;
+			outputAreaModel.WriteLine("Pause requested. Waiting to finish instruction.");
 		}
 
 		public event EventHandler<NewSnapshotEventArgs> NewSnapshot;

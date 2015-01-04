@@ -50,7 +50,7 @@ namespace StackLang.Core {
 		}
 
 		internal void TickStart() {
-			if (CurrentLine >= lineLengths.Length){
+			if (CurrentLine >= lineLengths.Length && CurrentExecutionSource == ExecutionSource.Code){
 				throw new InvalidOperationException("Execution already ended.");
 			}
 			escapedThisTick = false;

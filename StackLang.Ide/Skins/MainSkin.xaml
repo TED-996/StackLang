@@ -28,6 +28,17 @@
 
 	<DataTemplate x:Key="EditorTabHeaderTemplate">
 		<DockPanel d:DataContext="{d:DesignInstance Type=viewModel:EditorTabViewModel}">
+			<DockPanel.Style>
+				<Style>
+					<Style.Triggers>
+						<DataTrigger Binding="{Binding InDebug}" Value="true">
+							<DataTrigger.Setters>
+								<Setter Property="DockPanel.Background" Value="Yellow" />
+							</DataTrigger.Setters>
+						</DataTrigger>
+					</Style.Triggers>
+				</Style>
+			</DockPanel.Style>
 			<DockPanel.InputBindings>
 				<MouseBinding MouseAction="MiddleClick" Command="{Binding RemoveCommand}" />
 			</DockPanel.InputBindings>

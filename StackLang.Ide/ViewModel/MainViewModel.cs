@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.IO;
+using System.Reflection;
+using System.Xml;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
+using ICSharpCode.AvalonEdit.Highlighting;
+using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using StackLang.Ide.Helpers;
 using StackLang.Ide.Model;
 
@@ -12,6 +17,8 @@ namespace StackLang.Ide.ViewModel {
 		readonly DebuggerModel debugger;
 		readonly ExecutionAreaModel executionAreaModel;
 		readonly OutputAreaModel outputAreaModel;
+
+		readonly IHighlightingDefinition stackLangSyntaxDefinition;
 
 		ObservableCollection<EditorTabViewModel> _editorTabViewModels = new ObservableCollection<EditorTabViewModel>();
 		public ObservableCollection<EditorTabViewModel> EditorTabViewModels {
@@ -92,7 +99,7 @@ namespace StackLang.Ide.ViewModel {
 		public RelayCommand NewTabCommand {
 			get {
 				return newTabCommand ?? (newTabCommand = new RelayCommand(() =>
-					AddTab(new EditorTabViewModel())));
+					AddTab(new EditorTabViewModel(stackLangSyntaxDefinition))));
 			}
 		}
 
@@ -161,13 +168,37 @@ namespace StackLang.Ide.ViewModel {
 		public RelayCommand StepCommand {
 			get {
 				return stepCommand ?? (stepCommand = new RelayCommand(debugger.Step,
-					() => debugger.ExecutionRunning && !debugger.StepRunning));
+					() => debugger.ExecutionRunning && !debugger.StepRunning && !debugger.InContinue));
+			}
+		}
+
+		RelayCommand continueCommand;
+		public RelayCommand ContinueCommand {
+			get {
+				return continueCommand ?? (continueCommand = new RelayCommand(debugger.Continue, 
+					() => debugger.ExecutionRunning && !debugger.StepRunning && !debugger.InContinue));
+			}
+		}
+
+		RelayCommand pauseCommand;
+		public RelayCommand PauseCommand {
+			get {
+				return pauseCommand ?? (pauseCommand = new RelayCommand(debugger.Pause,
+					() => debugger.InContinue));
 			}
 		}
 
 		public MainViewModel() {
+			Stream defitionStream = Assembly.GetExecutingAssembly().
+				GetManifestResourceStream("StackLang.Ide.Content.StackLangSyntaxHighlighting.xshd");
+			if (defitionStream == null) {
+				throw new ApplicationException("Definition not found in resources.");
+			}
+
+			stackLangSyntaxDefinition = HighlightingLoader.Load(new XmlTextReader(defitionStream), new HighlightingManager());
+
 			EditorTabViewModels.CollectionChanged += OnEditorTabsCollectionChanged;
-			AddTab(new EditorTabViewModel());
+			AddTab(new EditorTabViewModel(stackLangSyntaxDefinition));
 
 			executionAreaModel = ExecutionAreaViewModel.Model;
 			outputAreaModel = OutputAreaViewModel.Model;
@@ -193,13 +224,20 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		void OnEditorTabRemove(object s, EventArgs e) {
-			EditorTabViewModels.Remove((EditorTabViewModel)s);
+			EditorTabViewModel viewModel = (EditorTabViewModel) s;
+			if (viewModel.InDebug) {
+				debugger.Abort();
+				outputAreaModel.WriteLine("Cannot close the tab currently debugged.");
+				return;
+			}
+
+			EditorTabViewModels.Remove(viewModel);
 		}
 
 		void OpenTab() {
 			EditorTabViewModel newTab;
 			try {
-				newTab = EditorTabViewModel.Open();
+				newTab = EditorTabViewModel.Open(stackLangSyntaxDefinition);
 			}
 			catch (FileException ex) {
 				outputAreaModel.WriteLine(ex.ToString());
@@ -245,6 +283,7 @@ namespace StackLang.Ide.ViewModel {
 				outputAreaModel.WriteLine(ex.ToString());
 				return;
 			}
+			debugger.Breakpoints = SelectedTabViewModel.Breakpoints;
 
 			debugger.Start(SelectedTabViewModel);
 		}

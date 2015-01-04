@@ -21,6 +21,15 @@
 			<helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
 		</ResourceDictionary>
 	</Window.Resources>
+	<Window.InputBindings>
+		<KeyBinding Gesture="CTRL+N" Command="{Binding NewTabCommand}" />
+		<KeyBinding Gesture="CTRL+O" Command="{Binding OpenFileCommand}" />
+		<KeyBinding Gesture="CTRL+S" Command="{Binding SaveCommand}" />
+		<KeyBinding Gesture="CTRL+W" Command="{Binding CloseCommand}" />
+		<KeyBinding Key="F9" Command="{Binding RunCommand}" />
+		<KeyBinding Key="F8" Command="{Binding DebugCommand}" />
+		<KeyBinding Key="F11" Command="{Binding StepCommand}" />
+	</Window.InputBindings>
 	<DockPanel>
 		<ToolBarTray VerticalAlignment="Top" DockPanel.Dock="Top">
 			<ToolBarTray.Resources>
@@ -70,10 +79,12 @@
 						ToolTip="Step (F11)">
 					<Image Source="Content\step.png"/>
 				</Button>
-				<Button ToolTip="Continue">
+				<Button Command="{Binding ContinueCommand}"
+						ToolTip="Continue">
 					<Image Source="Content\continue.png"/>
 				</Button>
-				<Button ToolTip="Pause">
+				<Button Command="{Binding PauseCommand}"
+						ToolTip="Pause">
 					<Image Source="Content\pause.png"/>
 				</Button>
 			</ToolBar>

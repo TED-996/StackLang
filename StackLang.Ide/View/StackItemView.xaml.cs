@@ -2,10 +2,10 @@
 
 namespace StackLang.Ide.View {
 	/// <summary>
-	/// Interaction logic for SettingsView.xaml
+	/// Interaction logic for StackItemView.xaml
 	/// </summary>
-	public partial class SettingsView : UserControl {
-		public SettingsView() {
+	public partial class StackItemView : UserControl {
+		public StackItemView() {
 			InitializeComponent();
 		}
 	}

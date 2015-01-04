@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
@@ -18,7 +17,7 @@ namespace StackLang.Ide.ViewModel {
 
 		public readonly IoSettingsModel IoSettingsModel;
 
-		readonly ObservableCollection<int> breakpoints;
+		public readonly ObservableCollection<int> Breakpoints;
 		readonly InstructionHighlighter highlighter;
 
 		public string Name {
@@ -42,7 +41,6 @@ namespace StackLang.Ide.ViewModel {
 		public string Text {
 			get { return text; }
 			set {
-				Debug.WriteLine("Text changed: value: " + value);
 				if (text == value) {
 					return;
 				}
@@ -51,15 +49,14 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		IHighlightingDefinition _highlighting = HighlightingManager.Instance.HighlightingDefinitions.First(
-				definition => definition.Name == "C#");
-		public IHighlightingDefinition Highlighting {
-			get { return _highlighting; }
+		IHighlightingDefinition _highlightingDefinition;
+		public IHighlightingDefinition HighlightingDefinition {
+			get { return _highlightingDefinition; }
 			set {
-				if (_highlighting == value) {
+				if (_highlightingDefinition == value) {
 					return;
 				}
-				_highlighting = value;
+				_highlightingDefinition = value;
 				RaisePropertyChanged();
 			}
 		}
@@ -72,6 +69,42 @@ namespace StackLang.Ide.ViewModel {
 					return;
 				}
 				_transformers = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		bool _inDebug;
+		public bool InDebug {
+			get { return _inDebug; }
+			set {
+				if (_inDebug == value) {
+					return;
+				}
+				_inDebug = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		bool _breakpointsVisible;
+		public bool BreakpointsVisible {
+			get { return _breakpointsVisible; }
+			set {
+				if (_breakpointsVisible == value) {
+					return;
+				}
+				_breakpointsVisible = value;
+				RaisePropertyChanged();
+			}
+		}
+
+		string _breakpointText;
+		public string BreakpointText {
+			get { return _breakpointText; }
+			set {
+				if (_breakpointText == value) {
+					return;
+				}
+				_breakpointText = value;
 				RaisePropertyChanged();
 			}
 		}
@@ -92,12 +125,29 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		public EditorTabViewModel() : this(new FileModel()) {
+		RelayCommand toggleBreakpointCommand;
+		public RelayCommand ToggleBreakpointCommand {
+			get {
+				return toggleBreakpointCommand ?? (toggleBreakpointCommand = new RelayCommand(ToggleBreakpoint,
+					() => BreakpointsVisible && !string.IsNullOrEmpty(BreakpointText)));
+			}
+		}
+
+		RelayCommand toggleBreakpointsVisibleCommand;
+		public RelayCommand ToggleBreakpointsVisibleCommand {
+			get {
+				return toggleBreakpointsVisibleCommand ?? (toggleBreakpointsVisibleCommand = new RelayCommand(() => {
+					BreakpointsVisible = !BreakpointsVisible;
+				}));
+			}
+		}
+
+		public EditorTabViewModel(IHighlightingDefinition newSyntaxDefinition) : this(newSyntaxDefinition, new FileModel()) {
 			TextChanged += fileModel.OnEditorTabTextChanged;
 			fileModel.PropertyChanged += OnFileModelPropertyChanged;
 		}
 
-		EditorTabViewModel(FileModel newFileModel) {
+		EditorTabViewModel(IHighlightingDefinition newSyntaxDefinition, FileModel newFileModel) {
 			fileModel = newFileModel;
 			TextChanged += fileModel.OnEditorTabTextChanged;
 			fileModel.PropertyChanged += OnFileModelPropertyChanged;
@@ -105,12 +155,14 @@ namespace StackLang.Ide.ViewModel {
 			Text = fileModel.Text;
 			TextModified = false;
 
+			HighlightingDefinition = newSyntaxDefinition;
+
 			IoSettingsModel = new IoSettingsModel {CodeFileName = fileModel.Filename};
 
 			highlighter = new InstructionHighlighter();
-			breakpoints = new ObservableCollection<int>();
+			Breakpoints = new ObservableCollection<int>();
 			Transformers = new List<DocumentColorizingTransformer> {
-				new BreakpointHighlighter(breakpoints),
+				new BreakpointHighlighter(Breakpoints),
 				highlighter
 			};
 		}
@@ -138,14 +190,29 @@ namespace StackLang.Ide.ViewModel {
 			return true;
 		}
 
+		void ToggleBreakpoint() {
+			int value = int.Parse(BreakpointText);
+			BreakpointText = "";
+
+			if (value <= 0 || value > Text.Count(c => c == '\n') + 1) {
+				return;
+			}
+
+			if (!Breakpoints.Remove(value)) {
+				Breakpoints.Add(value);
+			}
+		}
+
 		public void OnDebugStart(object sender, EventArgs e) {
 			DebuggerModel debuggerModel = (DebuggerModel) sender;
 			debuggerModel.DebugStart -= OnDebugStart;
 			debuggerModel.NewSnapshot += OnNewSnapshot;
 			debuggerModel.DebugEnd += OnDebugEnd;
+
+			InDebug = true;
 		}
 
-		public void OnNewSnapshot(object sender, NewSnapshotEventArgs e) {
+		void OnNewSnapshot(object sender, NewSnapshotEventArgs e) {
 			SnapshotWrapper snapshot = e.SnapshotWrapper;
 			highlighter.Enabled = true;
 			highlighter.Line = snapshot.CurrentLine + 1;
@@ -155,8 +222,9 @@ namespace StackLang.Ide.ViewModel {
 			highlighter.RequestRedraw();
 		}
 
-		public void OnDebugEnd(object sender, EventArgs e) {
+		void OnDebugEnd(object sender, EventArgs e) {
 			highlighter.Enabled = false;
+			InDebug = false;
 
 			highlighter.RequestRedraw();
 
@@ -185,6 +253,11 @@ namespace StackLang.Ide.ViewModel {
 
 		void OnTextChanged() {
 			TextModified = true;
+
+			foreach (int breakpoint in Breakpoints.Where(b => b > Text.Count(c => c == '\n') + 1).ToList()) {
+				Breakpoints.Remove(breakpoint);
+			}
+
 			RaiseTextChanged();
 		}
 
@@ -196,12 +269,12 @@ namespace StackLang.Ide.ViewModel {
 			}
 		}
 
-		public static EditorTabViewModel Open() {
+		public static EditorTabViewModel Open(IHighlightingDefinition syntaxDefinition) {
 			string filename = FileDialogHelpers.ShowOpenFileDialog();
 			if (filename == null) {
 				return null;
 			}
-			return new EditorTabViewModel(FileModel.LoadFromFile(filename));
+			return new EditorTabViewModel(syntaxDefinition, FileModel.LoadFromFile(filename));
 		}
 	}
 }

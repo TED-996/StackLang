@@ -11,11 +11,11 @@ namespace StackLang.Ide.Model {
 		public event EventHandler AwaitingInput;
 		public event EventHandler InputProvided;
 
-		volatile bool isAwaitingInput;
+		public bool IsAwaitingInput { get; private set; }
 		volatile string inputLine;
 
 		public void ProvideInput(string value) {
-			if (!isAwaitingInput) {
+			if (!IsAwaitingInput) {
 				return;
 			}
 			inputLine = value;
@@ -36,7 +36,7 @@ namespace StackLang.Ide.Model {
 		}
 
 		public string ReadLine() {
-			isAwaitingInput = true;
+			IsAwaitingInput = true;
 			inputLine = null;
 
 			EventHandler handler = AwaitingInput;
@@ -48,7 +48,7 @@ namespace StackLang.Ide.Model {
 				Thread.Sleep(20);
 			}
 
-			isAwaitingInput = false;
+			IsAwaitingInput = false;
 			handler = InputProvided;
 			if (handler != null) {
 				handler(this, EventArgs.Empty);

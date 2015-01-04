@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using StackLang.Core;
+using StackLang.Ide.ViewModel;
 
 namespace StackLang.Ide.Helpers {
 	public class BoolToBrushConverter : IValueConverter {
@@ -20,10 +22,9 @@ namespace StackLang.Ide.Helpers {
 		}
 	}
 
-	public class ExecutionSourceToStringConverter : IValueConverter {
+	public class InstructionEscapedToStringConverter : IValueConverter {
 		public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-			return "Source: " +
-				((ExecutionParameters.ExecutionSource)value == ExecutionParameters.ExecutionSource.Stack ? "Stack" : "Code");
+			return "Escaping: " + (bool) value;
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
@@ -84,6 +85,23 @@ namespace StackLang.Ide.Helpers {
 		}
 
 		public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+			throw new NotImplementedException();
+		}
+	}
+
+	public class StringListToStackItemListConverter : IMultiValueConverter {
+		public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture) {
+			if (values[0] == DependencyProperty.UnsetValue || values[1] == DependencyProperty.UnsetValue) {
+				return Enumerable.Empty<StackItemViewModel>();
+			}
+			IList<string> inputCollection = (IList<string>)values[0];
+			bool useHighlight = ((ExecutionParameters.ExecutionSource) values[1] == 
+				ExecutionParameters.ExecutionSource.Stack);
+			return inputCollection.Select((s, i) => new StackItemViewModel(s, useHighlight &&
+				i == inputCollection.Count - 1));
+		}
+
+		public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture) {
 			throw new NotImplementedException();
 		}
 	}

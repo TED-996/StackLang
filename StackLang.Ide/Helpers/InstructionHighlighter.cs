@@ -1,6 +1,5 @@
 ﻿using System.Collections.ObjectModel;
 using System.Windows.Media;
-using System.Windows.Threading;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Rendering;
 
@@ -63,20 +62,28 @@ namespace StackLang.Ide.Helpers {
 	class BreakpointHighlighter : DocumentColorizingTransformer {
 		readonly ObservableCollection<int> breakpoints;
 
+		delegate void RedrawDelegate();
+
+		RedrawDelegate redrawDelegate;
+
 		public BreakpointHighlighter(ObservableCollection<int> newBreakpoints) {
 			breakpoints = newBreakpoints;
 			breakpoints.CollectionChanged += (sender, e) => RequestRedraw();
 		}
 
 		protected override void ColorizeLine(DocumentLine line) {
+			if (redrawDelegate == null) {
+				redrawDelegate = CurrentContext.TextView.Redraw;
+			}
+
 			if (breakpoints.Contains(line.LineNumber)) {
 				ChangeLinePart(line.Offset, line.EndOffset, element => element.BackgroundBrush = Brushes.LightCoral);
 			}
 		}
 
-		public void RequestRedraw() {
-			if (CurrentContext != null) {
-				CurrentContext.TextView.Redraw();
+		void RequestRedraw() {
+			if (redrawDelegate != null) {
+				redrawDelegate();
 			}
 		}
 	}

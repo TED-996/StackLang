@@ -4,7 +4,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using StackLang.Ide.Annotations;
 using StackLang.Ide.Helpers;
-using StackLang.Ide.ViewModel;
 
 namespace StackLang.Ide.Model {
 	public sealed class FileModel : INotifyPropertyChanged {
