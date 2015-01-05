@@ -56,7 +56,7 @@ namespace StackLang.Ide.Helpers {
 
 			OpenFileDialog dialog = new OpenFileDialog {
 				Filter = "All Files (*.*)|*.*",
-				Title = "Select input file",
+				Title = "Browse for input file",
 				CheckFileExists = true
 			};
 			if (initialDirectory != null) {
@@ -79,7 +79,7 @@ namespace StackLang.Ide.Helpers {
 
 			SaveFileDialog dialog = new SaveFileDialog {
 				Filter = "All Files (*.*)|*.*",
-				Title = "Select output file",
+				Title = "Browse for output file",
 				OverwritePrompt = false
 			};
 			if (initialDirectory != null) {
@@ -93,6 +93,12 @@ namespace StackLang.Ide.Helpers {
 				return null;
 			}
 			return dialog.FileName;
+		}
+
+		public static bool ShowReloadDialog(string displayName) {
+			MessageBoxResult result = MessageBox.Show("The file " + displayName + " was changed. Do you want to reload it?",
+				"StackLang.Ide", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+			return result == MessageBoxResult.Yes;
 		}
 	}
 }

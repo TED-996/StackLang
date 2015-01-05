@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using StackLang.Ide.Annotations;
 using StackLang.Ide.Helpers;
 
@@ -31,14 +33,13 @@ namespace StackLang.Ide.Model {
 
 		public string Text { get; private set; }
 
-		public FileModel() {
-			Filename = null;
-			Text = "";
-		}
+		byte[] lastHash;
 
-		public FileModel(string newFilename, string newText) {
+		public FileModel(string newFilename = null, string newText = "") {
 			Filename = newFilename;
 			Text = newText;
+
+			SetFileHash();
 		}
 
 		public void Save(string newFilename = null) {
@@ -52,13 +53,46 @@ namespace StackLang.Ide.Model {
 			catch (Exception ex) {
 				throw new FileException(Filename, "Could not save to file.", ex);
 			}
+			SetFileHash();
+		}
+
+		void SetFileHash() {
+			if (Filename == null) {
+				lastHash = null;
+				return;
+			}
+			HashAlgorithm hash = HashAlgorithm.Create();
+			using (FileStream stream = new FileStream(Filename, FileMode.Open, FileAccess.Read)) {
+				lastHash = hash.ComputeHash(stream);
+			}
+		}
+
+		public bool IsFileChanged() {
+			byte[] oldHash = lastHash;
+			SetFileHash();
+
+			//We do this to eliminate nulls, but stil be able to check their equality.
+			return !(oldHash.NullToEmptyCollection()).SequenceEqual(lastHash.NullToEmptyCollection());
 		}
 
 		public void OnEditorTabTextChanged(object s, TextChangedEventArgs e) {
 			Text = e.Text;
 		}
 
+		public void Reload() {
+			if (Filename == null) {
+				throw new ApplicationException("Attempted reload from null.");
+			}
+			try {
+				Text = File.ReadAllText(Filename);
+			}
+			catch (Exception ex) {
+				throw new FileException(Filename, "Could not reload from file.", ex);
+			}
+		}
+
 		public event PropertyChangedEventHandler PropertyChanged;
+
 		[NotifyPropertyChangedInvocator]
 		void RaisePropertyChanged([CallerMemberName] string propertyName = null) {
 			PropertyChangedEventHandler handler = PropertyChanged;

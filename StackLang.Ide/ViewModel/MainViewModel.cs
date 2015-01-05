@@ -40,10 +40,9 @@ namespace StackLang.Ide.ViewModel {
 					return;
 				}
 				_selectedTabViewModel = value;
-
-				SettingsViewModel.IoModel = (value == null ? null : value.IoSettingsModel);
-
 				RaisePropertyChanged();
+
+				OnTabChanged();
 			}
 		}
 
@@ -171,10 +170,10 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		void OnEditorTabsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			foreach (EditorTabViewModel vm in e.NewItems.NotNullCollection()) {
+			foreach (EditorTabViewModel vm in e.NewItems.NullToEmptyCollection()) {
 				vm.RequestRemove += OnEditorTabRemove;
 			}
-			foreach (EditorTabViewModel vm in e.OldItems.NotNullCollection()) {
+			foreach (EditorTabViewModel vm in e.OldItems.NullToEmptyCollection()) {
 				vm.RequestRemove -= OnEditorTabRemove;
 			}
 		}
@@ -188,6 +187,23 @@ namespace StackLang.Ide.ViewModel {
 			}
 
 			EditorTabViewModels.Remove(viewModel);
+		}
+
+		void OnTabChanged() {
+			SettingsViewModel.IoModel = (SelectedTabViewModel == null ? null : SelectedTabViewModel.IoSettingsModel);
+
+			foreach (EditorTabViewModel viewModel in EditorTabViewModels) {
+				viewModel.OnTabSwitchOut();
+			}
+
+			if (SelectedTabViewModel != null) {
+				try {
+					SelectedTabViewModel.OnTabSwitchIn();
+				}
+				catch (FileException ex) {
+					outputAreaModel.WriteLine(ex.ToString());
+				}
+			}
 		}
 
 		void OpenTab() {

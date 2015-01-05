@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Timers;
+using System.Windows;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight.CommandWpf;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Rendering;
@@ -19,6 +22,8 @@ namespace StackLang.Ide.ViewModel {
 
 		public readonly ObservableCollection<int> Breakpoints;
 		readonly InstructionHighlighter highlighter;
+
+		readonly Timer refreshTimer;
 
 		public string Name {
 			get { return fileModel.DisplayName + (TextModified ? " *" : ""); }
@@ -127,8 +132,6 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		public EditorTabViewModel(IHighlightingDefinition newSyntaxDefinition) : this(newSyntaxDefinition, new FileModel()) {
-			TextChanged += fileModel.OnEditorTabTextChanged;
-			fileModel.PropertyChanged += OnFileModelPropertyChanged;
 		}
 
 		EditorTabViewModel(IHighlightingDefinition newSyntaxDefinition, FileModel newFileModel) {
@@ -143,6 +146,13 @@ namespace StackLang.Ide.ViewModel {
 
 			IoSettingsModel = new IoSettingsModel {CodeFileName = fileModel.Filename};
 
+			refreshTimer = new Timer(2000) {
+				AutoReset = true,
+				Enabled = true
+			};
+			refreshTimer.Elapsed += (sender, e) => ReloadIfNeeded();
+
+
 			highlighter = new InstructionHighlighter();
 			Breakpoints = new ObservableCollection<int>();
 			Transformers = new List<DocumentColorizingTransformer> {
@@ -155,6 +165,24 @@ namespace StackLang.Ide.ViewModel {
 			if (e.PropertyName == "Filename" || e.PropertyName == "DisplayName") {
 				RaisePropertyChanged("Name");
 				IoSettingsModel.CodeFileName = fileModel.Filename;
+			}
+		}
+
+		public void OnTabSwitchOut() {
+			refreshTimer.Enabled = false;
+		}
+
+		public void OnTabSwitchIn() {
+			refreshTimer.Enabled = true;
+			ReloadIfNeeded();
+		}
+
+		void ReloadIfNeeded() {
+			if (fileModel.IsFileChanged() && FileDialogHelpers.ShowReloadDialog(Name)) {
+				fileModel.Reload();
+				Text = fileModel.Text;
+				Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle,
+					(Action) (() => TextModified = false));
 			}
 		}
 

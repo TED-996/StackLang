@@ -75,10 +75,10 @@ namespace StackLang.Ide.ViewModel {
 		}
 
 		void OnWatchesCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
-			foreach (WatchViewModel vm in e.NewItems.NotNullCollection()) {
+			foreach (WatchViewModel vm in e.NewItems.NullToEmptyCollection()) {
 				vm.RequestRemove += OnWatchRemove;
 			}
-			foreach (WatchViewModel vm in e.OldItems.NotNullCollection()) {
+			foreach (WatchViewModel vm in e.OldItems.NullToEmptyCollection()) {
 				vm.RequestRemove -= OnWatchRemove;
 			}
 		}
