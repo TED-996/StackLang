@@ -31,6 +31,7 @@
 				   DockPanel.Dock="Left"/>
 			<Label Content="{Binding Snapshot.InstructionEscaped,
 							Converter={StaticResource InstructionEscapedToStringConverter}}"
+				   HorizontalAlignment="Right"
 				   DockPanel.Dock="Right" />
 		</DockPanel>
 		<Border Grid.Row="1" BorderBrush="Silver" BorderThickness="1">

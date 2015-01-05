@@ -17,7 +17,7 @@
 			<ResourceDictionary.MergedDictionaries>
 				<ResourceDictionary Source="Skins/MainSkin.xaml" />
 			</ResourceDictionary.MergedDictionaries>
-			<helpers:NullToGridLengthConverter x:Key="NullToGridLengthConverter" />
+			<helpers:NullToBoolConverter x:Key="NullToBoolConverter" />
 			<helpers:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
 		</ResourceDictionary>
 	</Window.Resources>
@@ -103,8 +103,8 @@
 				<Grid>
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="3*"/>
-						<ColumnDefinition Width="{Binding DebugAreaViewModel,
-							Converter={StaticResource NullToGridLengthConverter}}" />
+						<helpers:ColumnVisibleDefinition Width="1*" Visible="{Binding DebugAreaViewModel,
+							Converter={StaticResource NullToBoolConverter}}"/>
 					</Grid.ColumnDefinitions>
 					<TabControl IsSynchronizedWithCurrentItem="True" 
 								ItemsSource="{Binding EditorTabViewModels}"
@@ -114,6 +114,7 @@
 								Grid.Row="0">
 					</TabControl>
 					<GridSplitter Grid.Column="1" Width="5"
+								  HorizontalAlignment="Left"
 								  VerticalAlignment="Stretch" 
 								  Visibility="{Binding DebugAreaViewModel,
 									Converter={StaticResource NullToVisibilityConverter}}"/>
