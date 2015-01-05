@@ -56,12 +56,13 @@
 			</avalon:TextEditor>
 		</DockPanel>
 		<Button Command="{Binding ToggleBreakpointsVisibleCommand}"
-				Width="20"
-				Height="20"
+				Width="17"
+				Height="17"
 				VerticalAlignment="Bottom"
 				HorizontalAlignment="Right"
 				>
-			<Image Source="../Content/extend.png" />
+			<Image Source="../Content/extend.png"
+				   RenderOptions.BitmapScalingMode="HighQuality"/>
 			<Button.Style>
 				<Style BasedOn="{StaticResource FlatButtonStyle}" TargetType="Button">
 					<Setter Property="RenderTransformOrigin" Value="0.5,0.5" />

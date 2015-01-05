@@ -6,11 +6,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              StartupUri="MainWindow.xaml"
              mc:Ignorable="d">
-    
-    <Application.Resources>
-        <!--Global View Model Locator-->
-        <viewModel:ViewModelLocator x:Key="Locator"
+
+	<Application.Resources>
+		<!--Global View Model Locator-->
+		<viewModel:ViewModelLocator x:Key="Locator"
 									d:IsDataSource="True" />
+		
 		<Style TargetType="Button" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" x:Key="FlatButtonStyle">
 			<Style.Resources>
 				<Style TargetType="Image">
@@ -22,7 +23,8 @@
 				</Style>
 			</Style.Resources>
 		</Style>
-	    <BitmapImage UriSource="Content/remove.png" x:Key="RemoveImageSource" />
+
+		<BitmapImage UriSource="Content/remove.png" x:Key="RemoveImageSource" />
 	</Application.Resources>
-    
+
 </Application>
