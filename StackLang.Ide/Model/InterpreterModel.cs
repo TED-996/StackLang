@@ -20,6 +20,8 @@ namespace StackLang.Ide.Model {
 		ExecutionContext context;
 		Thread executionThread;
 
+		volatile bool abortRequested;
+
 		public InterpreterModel(OutputAreaModel newOutputAreaModel) {
 			outputAreaModel = newOutputAreaModel;
 		}
@@ -47,12 +49,11 @@ namespace StackLang.Ide.Model {
 			try {
 				while (!context.ExecutionEnded) {
 					context.Tick();
-					Thread.Sleep(0);
+					if (abortRequested) {
+						outputAreaModel.WriteLine("Execution aborted.");
+						return;
+					}
 				}
-			}
-			catch (ThreadInterruptedException) {
-				executionThread = null;
-				return;
 			}
 			catch (CodeException ex) {
 				outputAreaModel.WriteLine(ex.ToString());
@@ -65,18 +66,17 @@ namespace StackLang.Ide.Model {
 		}
 
 		public void Abort() {
-			Thread thread = executionThread;
 			if (!ExecutionRunning) {
 				return;
 			}
-			thread.Interrupt();
+			outputAreaModel.WriteLine("Abort requested.");
+			abortRequested = true;
 
-			if (!thread.Join(1000)) {
-				outputAreaModel.WriteLine("Aborting not successful.");
+			ExecutionAreaModel executionAreaModel = OutputManager as ExecutionAreaModel;
+			if (executionAreaModel != null && executionAreaModel.IsAwaitingInput) {
+				executionAreaModel.ProvideInput("0");
 			}
-			else {
-				outputAreaModel.WriteLine("Execution aborted.");
-			}
+			//Else wait.
 		}
 	}
 }

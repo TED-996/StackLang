@@ -27,7 +27,7 @@ namespace StackLang.Ide.Model {
 			}
 		}
 
-		volatile bool aborted;
+		volatile bool abortRequested;
 		volatile bool paused;
 
 		public bool InContinue { get; private set; }
@@ -61,7 +61,7 @@ namespace StackLang.Ide.Model {
 
 			outputAreaModel.WriteLine("Debug started.");
 			ExecutionRunning = true;
-			aborted = false;
+			abortRequested = false;
 			RaiseDebugStart();
 
 			Snapshot = new SnapshotWrapper(context.Parameters.GetSnapshot());
@@ -85,7 +85,7 @@ namespace StackLang.Ide.Model {
 				OnExecutionEnd();
 			}
 
-			if (aborted) {
+			if (abortRequested) {
 				return;
 			}
 
@@ -110,7 +110,7 @@ namespace StackLang.Ide.Model {
 					throw new ApplicationException("Step called with execution stopped.");
 				}
 				try {
-					while (!context.ExecutionEnded && !paused && !aborted) {
+					while (!context.ExecutionEnded && !paused && !abortRequested) {
 						context.Tick();
 						if (Breakpoints.Contains(context.Parameters.CurrentLine + 1)
 						    && context.Parameters.CurrentInstruction == 0) {
@@ -124,7 +124,7 @@ namespace StackLang.Ide.Model {
 					OnExecutionEnd();
 				}
 
-				if (aborted) {
+				if (abortRequested) {
 					return;
 				}
 
@@ -174,7 +174,8 @@ namespace StackLang.Ide.Model {
 		}
 
 		void Cancel() {
-			aborted = true;
+			outputAreaModel.WriteLine("Debug abort requested.");
+			abortRequested = true;
 			ExecutionAreaModel executionAreaModel = OutputManager as ExecutionAreaModel;
 			if (executionAreaModel != null && executionAreaModel.IsAwaitingInput) {
 				executionAreaModel.ProvideInput("0");
