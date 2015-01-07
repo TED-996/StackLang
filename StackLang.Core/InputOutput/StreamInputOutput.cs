@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using StackLang.Core.Exceptions;
 
 namespace StackLang.Core.InputOutput {
 	public class StreamInputManager : IInputManager {
@@ -9,7 +10,12 @@ namespace StackLang.Core.InputOutput {
 		}
 
 		public string ReadLine() {
-			return reader.ReadLine();
+			try {
+				return reader.ReadLine();
+			}
+			catch {
+				throw new IncompleteCodeException("Could not read from input.");
+			}
 		}
 
 		public void Dispose() {
@@ -25,7 +31,12 @@ namespace StackLang.Core.InputOutput {
 		}
 
 		public void WriteLine(string line) {
-			writer.WriteLine(line);
+			try {
+				writer.WriteLine(line);
+			}
+			catch {
+				throw new IncompleteCodeException("Could not write to output.");
+			}
 		}
 
 		public void Dispose() {

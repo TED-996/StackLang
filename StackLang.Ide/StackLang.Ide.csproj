@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>StackLang.Ide</RootNamespace>
     <AssemblyName>StackLang.Ide</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -23,6 +24,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -34,11 +36,26 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="GalaSoft.MvvmLight">
+      <HintPath>..\packages\MvvmLightLibs.5.0.2.0\lib\net45\GalaSoft.MvvmLight.dll</HintPath>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.Extras">
+      <HintPath>..\packages\MvvmLightLibs.5.0.2.0\lib\net45\GalaSoft.MvvmLight.Extras.dll</HintPath>
+    </Reference>
+    <Reference Include="GalaSoft.MvvmLight.Platform">
+      <HintPath>..\packages\MvvmLightLibs.5.0.2.0\lib\net45\GalaSoft.MvvmLight.Platform.dll</HintPath>
+    </Reference>
     <Reference Include="ICSharpCode.AvalonEdit">
       <HintPath>..\packages\AvalonEdit.5.0.2\lib\Net40\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Practices.ServiceLocation">
+      <HintPath>..\packages\CommonServiceLocator.1.3\lib\portable-net4+sl5+netcore45+wpa81+wp8\Microsoft.Practices.ServiceLocation.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\MvvmLightLibs.5.0.2.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -56,30 +73,57 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="DebugPane.xaml.cs">
-      <DependentUpon>DebugPane.xaml</DependentUpon>
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Helpers\AvalonTextBehavior.cs" />
+    <Compile Include="Helpers\ColumnVisibility.cs" />
+    <Compile Include="Helpers\Converters.cs" />
+    <Compile Include="Helpers\Extensions.cs" />
+    <Compile Include="Helpers\FileDialogHelpers.cs" />
+    <Compile Include="Helpers\FileException.cs" />
+    <Compile Include="Helpers\FocusHelper.cs" />
+    <Compile Include="Helpers\InstructionHighlighter.cs" />
+    <Compile Include="Helpers\IntegerOrEmptyValidation.cs" />
+    <Compile Include="Helpers\SnapshotWrapper.cs" />
+    <Compile Include="Helpers\TabContent.cs" />
+    <Compile Include="Model\DebuggerModel.cs" />
+    <Compile Include="Model\ExecutionAreaModel.cs" />
+    <Compile Include="Model\FileModel.cs" />
+    <Compile Include="Model\InterpreterModel.cs" />
+    <Compile Include="Helpers\EventArgs.cs" />
+    <Compile Include="Model\OutputAreaModel.cs" />
+    <Compile Include="Model\IoSettingsModel.cs" />
+    <Compile Include="MVVMEnhancements\ViewModelBaseEnhanced.cs" />
+    <Compile Include="Properties\Annotations.cs" />
+    <Compile Include="ViewModel\DebugAreaViewModel.cs" />
+    <Compile Include="ViewModel\EditorTabViewModel.cs" />
+    <Compile Include="ViewModel\ExecutionAreaViewModel.cs" />
+    <Compile Include="ViewModel\MainViewModel.cs" />
+    <Compile Include="ViewModel\OutputAreaViewModel.cs" />
+    <Compile Include="ViewModel\SettingsViewModel.cs" />
+    <Compile Include="ViewModel\StackItemViewModel.cs" />
+    <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Compile Include="ViewModel\WatchViewModel.cs" />
+    <Compile Include="View\DebugAreaView.xaml.cs">
+      <DependentUpon>DebugAreaView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="EnvironmentVariables.xaml.cs">
-      <DependentUpon>EnvironmentVariables.xaml</DependentUpon>
+    <Compile Include="View\EditorTabView.xaml.cs">
+      <DependentUpon>EditorTabView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OutputArea.xaml.cs">
-      <DependentUpon>OutputArea.xaml</DependentUpon>
+    <Compile Include="View\ExecutionAreaView.xaml.cs">
+      <DependentUpon>ExecutionAreaView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ResultArea.xaml.cs">
-      <DependentUpon>ResultArea.xaml</DependentUpon>
+    <Compile Include="View\OutputAreaView.xaml.cs">
+      <DependentUpon>OutputAreaView.xaml</DependentUpon>
     </Compile>
-    <Page Include="CodeTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="DebugPane.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="EnvironmentVariables.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
+    <Compile Include="View\SettingsView.xaml.cs">
+      <DependentUpon>SettingsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\StackItemView.xaml.cs">
+      <DependentUpon>StackItemView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\WatchView.xaml.cs">
+      <DependentUpon>WatchView.xaml</DependentUpon>
+    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -88,18 +132,43 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="CodeTab.xaml.cs">
-      <DependentUpon>CodeTab.xaml</DependentUpon>
-    </Compile>
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="OutputArea.xaml">
+    <Page Include="Skins\DebugAreaSkin.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ResultArea.xaml">
+    <Page Include="Skins\MainSkin.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\DebugAreaView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\EditorTabView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="View\ExecutionAreaView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\OutputAreaView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\SettingsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\StackItemView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\WatchView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -122,15 +191,13 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <EmbeddedResource Include="Content\StackLangSyntaxHighlighting.xshd" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-    <None Include="StackLangSyntaxHighlighting.xshd">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -142,29 +209,46 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\continue.png" />
-    <Resource Include="Images\step.png" />
+    <Resource Include="Content\abort.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\close.png" />
-    <Resource Include="Images\new.png" />
-    <Resource Include="Images\open.png" />
-    <Resource Include="Images\save.png" />
-    <Resource Include="Images\saveAs.png" />
+    <Resource Include="Content\add.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\debug.png" />
-    <Resource Include="Images\run.png" />
-    <Resource Include="Images\abort.png" />
+    <Resource Include="Content\close.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\remove.png" />
+    <Resource Include="Content\continue.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\add.png" />
+    <Resource Include="Content\debug.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\pause.png" />
+    <Resource Include="Content\new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\open.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\pause.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\run.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\save.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\saveAs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\step.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Content\extend.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

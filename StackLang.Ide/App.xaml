@@ -1,8 +1,30 @@
 ﻿<Application x:Class="StackLang.Ide.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-         
-    </Application.Resources>
+             xmlns:viewModel="clr-namespace:StackLang.Ide.ViewModel"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             StartupUri="MainWindow.xaml"
+             mc:Ignorable="d">
+
+	<Application.Resources>
+		<!--Global View Model Locator-->
+		<viewModel:ViewModelLocator x:Key="Locator"
+									d:IsDataSource="True" />
+		
+		<Style TargetType="Button" BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}" x:Key="FlatButtonStyle">
+			<Style.Resources>
+				<Style TargetType="Image">
+					<Style.Triggers>
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter Property="Opacity" Value="0.5" />
+						</Trigger>
+					</Style.Triggers>
+				</Style>
+			</Style.Resources>
+		</Style>
+
+		<BitmapImage UriSource="Content/remove.png" x:Key="RemoveImageSource" />
+	</Application.Resources>
+
 </Application>
