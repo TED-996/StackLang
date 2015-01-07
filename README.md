@@ -126,3 +126,7 @@ The way these work is (you can also fire up the debugger in the IDE to see for y
 8. After the else block has been executed, we again clean up the stack by executing it. The last instruction is the end jump, so we end up at the end of the block.
 
 #### While explanation coming up. Until then, look in the `arrayIncrement.sl` example, it contains 3 while loops. It looks similar to the if structure.
+
+## License:
+
+This is licensed under the MIT license.
