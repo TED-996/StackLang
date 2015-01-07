@@ -61,7 +61,8 @@ namespace StackLang.Core {
 		ProgramMemory memory;
 
 		public int Evaluate() {
-			return GetStackObjectValue().Evaluate();
+			IStackObject stackObject = GetStackObjectValue();
+			return stackObject == null ? 0 : stackObject.Evaluate();
 		}
 
 		public void SetProgramMemory(ProgramMemory newMemory) {
