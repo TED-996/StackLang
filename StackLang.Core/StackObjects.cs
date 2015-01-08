@@ -61,8 +61,7 @@ namespace StackLang.Core {
 		ProgramMemory memory;
 
 		public int Evaluate() {
-			IStackObject stackObject = GetStackObjectValue();
-			return stackObject == null ? 0 : stackObject.Evaluate();
+			return GetStackObjectValue().Evaluate();
 		}
 
 		public void SetProgramMemory(ProgramMemory newMemory) {
@@ -94,8 +93,8 @@ namespace StackLang.Core {
 			if (memory == null) {
 				return "r";
 			}
-			IStackObject stackObject = MemoryAreaObject.SolveReferences(this);
-			return stackObject == null ? "null" : stackObject.Evaluate().ToString(CultureInfo.InvariantCulture);
+
+			return GetStackObjectValue().Evaluate().ToString(CultureInfo.InvariantCulture);
 		}
 
 		public override string ToString() {
@@ -114,7 +113,7 @@ namespace StackLang.Core {
 
 		public int Evaluate() {
 			IStackObject stackObject = GetStackObjectValue();
-			return stackObject == null ? 0 : stackObject.Evaluate();
+			return stackObject.Evaluate();
 		}
 
 		public void SetProgramMemory(ProgramMemory newMemory) {
@@ -149,23 +148,11 @@ namespace StackLang.Core {
 			memory.MemoryArea[index] = stackObject;
 		}
 
-		internal static IStackObject SolveReferences(IStackObject stackObject) {
-			while (stackObject != null) {
-				IVariableObject objectAsVariableObject = stackObject as IVariableObject;
-				if (objectAsVariableObject == null) {
-					break;
-				}
-				stackObject = objectAsVariableObject.GetStackObjectValue();
-			}
-			return stackObject;
-		}
-
 		public string GetPrintedValue() {
 			if (memory == null) {
 				return "m" + index;
 			}
-			IStackObject stackObject = SolveReferences(this);
-			return stackObject == null ? "null" : stackObject.Evaluate().ToString(CultureInfo.InvariantCulture);
+			return GetStackObjectValue().Evaluate().ToString(CultureInfo.InvariantCulture);
 		}
 
 		public override string ToString() {

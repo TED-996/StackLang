@@ -163,8 +163,7 @@ namespace StackLang.Debugger {
 		}
 
 		string GetStringFromWatch(int watch) {
-			IStackObject stackObject = snapshot.Memory[watch];
-			return "m" + watch + ": " + ((stackObject == null) ? "null" : stackObject.GetPrintedValue());
+			return "m" + watch + ": " + snapshot.Memory[watch].GetPrintedValue();
 		}
 
 		public void ToggleBreakpoint(int line) {
