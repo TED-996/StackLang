@@ -15,6 +15,10 @@ The solution consists of three projects:
 3. StackLang.Debugger: a command-line debugger for StackLang. Again, being based on StackLang.Core, it's quite small, staying below 200 LOC.
 4. StackLang.Ide: a complete IDE, made with MVVM in WPF. It contains a tab-based editor with all the editing functionality one may want, an interpreter with in-app or file-based input/output and a complete debugger (with stepping, stack viewing, watches, breakpoints).
 
+## How to run StackLang
+
+Either build the source (NuGet will update the packages automatically) or download one of the binary releases. For the best experience, run StackLang.Ide; if you would rather run the console apps, use the StackLang.Interpreter or StackLang.Debugger executables.
+
 ## How to use the StackLang.Core API:
 
 1. Create an instance of `StackLang.Core.Parser`, supplying a `System.Io.Stream` as a code source.
@@ -69,7 +73,9 @@ That means that the code `\\ k+2 3 >> ;` will **first** print `3` and then jump 
 * `.` is a no-op, it does nothing. (it may come in handy later)
 * `if` will **pop** and **evaluate** the top value on the stack. If it's **evaluated to 0**, the instruction will *pop two values off the stack**. Otherwise, it does nothing. While it doesn't seem too useful, it is critical to allowing alternatives in code, or, as we know it, `if`-like behavior.
 
-That means that the way to write an if in StackLang is:
+#### If structure
+
+The way to write an if in StackLang is:
 
 ````
 [condition]
@@ -125,7 +131,14 @@ The way these work is (you can also fire up the debugger in the IDE to see for y
 7. **If the value is false**, the if instruction will pop off the true jump instruction and the pop instruction off the stack, so the stack will look like (for example) `k+5, k+3`. The false jump instruction will be executed.
 8. After the else block has been executed, we again clean up the stack by executing it. The last instruction is the end jump, so we end up at the end of the block.
 
-#### While explanation coming up. Until then, look in the `arrayIncrement.sl` example, it contains 3 while loops. It looks similar to the if structure.
+#### While structure
+
+The while structure is similar. The way to write a while in StackLang is:
+
+````
+
+
+````
 
 ## License:
 
