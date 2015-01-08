@@ -165,6 +165,13 @@ The way these work is (again, you can also fire up the debugger in the IDE to se
 5. Run the instructions in the block.
 6. Afterwards, the stack looks like (for example) this: `k+4, .`. We have to clean it up, so we run `p` twice to clean it, then jump back to the start.
 
+
+### Arrays
+
+* Sometimes you'll want to access a memory area by an index. Since all memory references are like `m10`, they cannot be changed while the program is running. The solution is to use the `m` instruction. The `m` instruction will pop one value off the stack, evaluate it and push a memory reference to that address. 
+
+For example, executing `2 m` will leave the stack like `m2`. Executing `<< 20 + m` will read a value and leave on the stack an address to that value, plus 20. For example, writing `1` as input will leave the stack `m21`, writing `10` will leave the stack `m20` and writing `0` will leave the stack `m20`. That means that we can remember `m20` as being the start of an array, with elements starting from `m(20+0)` to, for example, `m(20+100)` and access those by the index. A simpler way to do this may be added in the future.
+
 ## License:
 
 This is licensed under the MIT license.
