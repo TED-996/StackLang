@@ -17,7 +17,7 @@ The solution consists of three projects:
 
 ## How to run StackLang
 
-Either build the source (NuGet will update the packages automatically) or download one of the binary releases. For the best experience, run StackLang.Ide; if you would rather run the console apps, use the StackLang.Interpreter or StackLang.Debugger executables.
+Either build the source (NuGet will update the packages automatically) or download one of the binary releases. For the best experience, run StackLang.Ide; if you would rather run the console apps, use the StackLang.Interpreter or StackLang.Debugger executables (the first argument is the source file)
 
 ## How to use the StackLang.Core API:
 
@@ -32,11 +32,11 @@ Instructions are separated by whitespace (spaces, tabs, newlines). Comments star
 ### Arithmetic and IO:
 
 * Numbers are pushed on the stack as-is.
-* Operators (arithmetic, boolean or bitwise) are executed immediately.
+* Operators (arithmetic, boolean or bitwise) are executed immediately. Binary operators (like `+`, `*`, or `||`) pop the top two values off the stack and push their result and unary operators (`!` and `~`) only pop one value and push the result.
 
-That means that the code `2 2 +` will leave the value `4` on the stack.
+That means that the code `2 2 +` will leave the value `4` on the stack. The code `2 1 <` will leave `0` on the stack, since `2` is not less than `1`.
 
-* `<<` will read a number from the input manager. `>>` will pop a value on the stack and print it to the output manager.
+* `<<` will read a number from the input manager and push it on the stack. `>>` will pop a value on the stack and print it to the output manager.
 
 That means that the code `2 2 + >>` will print `4`.
 
@@ -45,7 +45,7 @@ That means that the code `2 2 + >>` will print `4`.
 * `r` is the register variable: a special built-in variable. Use only for short runs, there is only one and it WILL get reused.
 * `=` will pop 2 values from the stack, and it will assign the value of the **second** to the **first**. The first must be a variable. Take note, the **first** value is the value **on top** of the stack and the second is the one **below** it.
 
-That means that the code `2 r =` will assign the value `2` to the register. Take note, the code `r 2 =` will fail to execute. The code `r >>` will print the value currently on the register.
+That means that the code `2 r =` will assign the value `2` to the register. Take note, the code `r 2 =` will **fail to execute**. The code `r >>` will print the value currently on the register.
 
 * The language has 1024 memory slots. Access them with `m0` through `m1023`.
 
@@ -136,9 +136,34 @@ The way these work is (you can also fire up the debugger in the IDE to see for y
 The while structure is similar. The way to write a while in StackLang is:
 
 ````
-
+[condition]
+r = \\ k+[block size + 2] . k r if ;
+	[instructions]
+p p k-[block size + 2]
+[instructions after block]
 
 ````
+
+For example (this will read 10 numbers and add them in `m1`):
+
+````
+0 m0 = :initialize the counter
+m0 10 < :run until the counter gets to 10
+r = \\ k+4 . k r if ;
+	<< m1 + m1 = :read a number and add it to m1
+	m0 1 + m0 = :increment the counter
+p p k-4 :clean the stack and jump back to the condition
+m1 >>
+````
+
+The way these work is (again, you can also fire up the debugger in the IDE to see for yourself):
+
+1. Save the condition in the register.
+2. Put all the jump instructions on the stack.
+3. Start to execute from the stack.
+4. If the condition is true, continue running the code (the instruction pointer will already be on the next line)
+5. Run the instructions in the block.
+6. Afterwards, the stack looks like (for example) this: `k+4, .`. We have to clean it up, so we run `p` twice to clean it, then jump back to the start.
 
 ## License:
 
